@@ -457,7 +457,7 @@ function getDailyInfo() {
   const utcNow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   const dayIndex = Math.floor((utcNow - LAUNCH_DATE.getTime()) / 86400000);
   const puzzleNum = Math.max(1, dayIndex + 1);
-  const diff = DIFFS[dayIndex % 4];
+  const diff = DIFFS[((dayIndex % 4) + 4) % 4]; // safe for negative dayIndex (pre-launch)
   const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
   const seed = mulberry32(parseInt(dateStr))();
   return { puzzleNum, diff, seed: (seed * 0xFFFFFFFF) >>> 0 };
@@ -728,6 +728,7 @@ function refreshAllCells() {
 
 function selectCell(idx) {
   if (hintMask[idx]) return; // hint cells are locked
+  if (cageMap && getCageStatus(currentPuzzle, cageMap, cageMap[idx]) === 'correct') return; // lock solved cages
   const prev = selectedCell;
   selectedCell = idx;
   if (prev >= 0) updateCellDisplay(prev);
@@ -826,7 +827,8 @@ function getElapsedSecs() {
 ───────────────────────────────────────── */
 function showClearScreen() {
   const secs = getElapsedSecs();
-  const streak = incrementStreak();
+  const wasDaily = isDailyMode; // capture before any resets
+  const streak = wasDaily ? incrementStreak() : getStreak();
   const diff = DIFFICULTY[currentDiff];
 
   document.getElementById('modal-sub').textContent =
@@ -838,7 +840,7 @@ function showClearScreen() {
   const shareText = buildShareText(puzzleNum, diff.label, secs, hintsUsed, streak, hintMask, diff.size);
 
   // Save daily completion
-  if (isDailyMode) {
+  if (wasDaily) {
     const key = 'cagey_daily_' + new Date().toISOString().slice(0, 10);
     localStorage.setItem(key, '1');
     localStorage.setItem(key + '_share', shareText);
@@ -856,6 +858,9 @@ function showClearScreen() {
     } else {
       navigator.clipboard.writeText(shareText).then(() => {
         document.getElementById('share-btn').textContent = '✓ Copied!';
+        setTimeout(() => { document.getElementById('share-btn').textContent = '📤 Share Result'; }, 2000);
+      }).catch(() => {
+        document.getElementById('share-btn').textContent = '⚠ Copy failed';
         setTimeout(() => { document.getElementById('share-btn').textContent = '📤 Share Result'; }, 2000);
       });
     }
@@ -927,6 +932,7 @@ async function newPuzzle(diff) {
   cageMap = getCageMap(puzzle);
   createState(puzzle);
 
+  document.getElementById('grid-wrap').style.opacity = '1'; // reset if greyed from daily-already-solved
   renderGrid(puzzle, cageBorders, { grid });
   renderNumpad(puzzle.size);
   document.getElementById('hint-count').textContent = `(${MAX_HINTS} left)`;
@@ -1050,6 +1056,19 @@ document.querySelector('.diff-chip.daily').addEventListener('click', startDailyC
 
 // Show current streak in header badge
 document.getElementById('streak-num').textContent = getStreak();
+
+// Re-render grid on orientation change / resize
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (currentPuzzle && cageBorders) {
+      renderGrid(currentPuzzle, cageBorders, { grid });
+      renderNumpad(currentPuzzle.size);
+      refreshAllCells();
+    }
+  }, 150);
+});
 
 // Start with easy puzzle on load
 newPuzzle('easy');

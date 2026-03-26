@@ -120,6 +120,7 @@ function _solve(grid, pos, puzzle, cellCageMap, rowUsed, colUsed, solutions, sto
  * @returns {number[] | null | false}
  */
 function solve(puzzle, nodeLimit = Infinity) {
+  if (puzzle.size > 30) throw new Error(`Grid size ${puzzle.size} exceeds bitmask capacity (max 30)`);
   const { size } = puzzle;
   const grid = new Array(size * size).fill(0);
   const cellCageMap = buildCellCageMap(puzzle);
