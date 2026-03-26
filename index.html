@@ -829,6 +829,7 @@ function showClearScreen() {
   const secs = getElapsedSecs();
   const wasDaily = isDailyMode; // capture before any resets
   const streak = wasDaily ? incrementStreak() : getStreak();
+  document.getElementById('streak-num').textContent = streak;
   const diff = DIFFICULTY[currentDiff];
 
   document.getElementById('modal-sub').textContent =
@@ -1002,8 +1003,9 @@ async function startDailyChallenge() {
     setTimeout(() => {
       if (confirm('You already solved today\'s puzzle! 🎉\nOpen share text?')) {
         const shareText = localStorage.getItem(key + '_share') || 'Cagey daily completed!';
-        navigator.clipboard.writeText(shareText).catch(() => {});
-        alert('Copied to clipboard!');
+        navigator.clipboard.writeText(shareText)
+          .then(() => alert('Copied to clipboard!'))
+          .catch(() => alert('Could not copy – try again.'));
       }
     }, 300);
     return;
