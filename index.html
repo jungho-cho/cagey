@@ -66,6 +66,38 @@
     flex: 1;
   }
 
+  /* ── Game area (grid + controls) ── */
+  .game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+  .grid-panel { display: flex; justify-content: center; align-items: flex-start; }
+  .controls-panel {
+    display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%;
+  }
+
+  /* ── Tablet (768px+) ── */
+  @media (min-width: 768px) {
+    header { max-width: 600px; }
+    main   { max-width: 600px; }
+  }
+
+  /* ── Desktop (1024px+) ── */
+  @media (min-width: 1024px) {
+    header { max-width: 1100px; padding: 12px 32px 8px; }
+    main   { max-width: 1100px; padding: 16px 32px; align-items: flex-start; }
+    .diff-row { width: 100%; }
+    .game-area { flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 40px; }
+    .grid-panel { flex: 1; min-width: 0; justify-content: flex-start; }
+    .controls-panel { width: 260px; flex-shrink: 0; align-items: stretch; }
+    .num-key { aspect-ratio: 1; height: auto; }
+    .hint-row { width: 100%; }
+    .hint-btn { width: 100%; }
+  }
+
   /* ── Difficulty chips ── */
   .diff-row {
     display: flex; gap: 6px;
@@ -217,12 +249,16 @@
     <div class="diff-chip" data-diff="expert">Expert</div>
   </div>
 
-  <div id="grid-wrap"></div>
-
-  <div id="numpad"></div>
-
-  <div class="hint-row">
-    <button class="hint-btn" id="hint-btn">💡 Hint <span id="hint-count">(3 left)</span></button>
+  <div class="game-area">
+    <div class="grid-panel">
+      <div id="grid-wrap"></div>
+    </div>
+    <div class="controls-panel">
+      <div id="numpad"></div>
+      <div class="hint-row">
+        <button class="hint-btn" id="hint-btn">💡 Hint <span id="hint-count">(3 left)</span></button>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -538,12 +574,19 @@ function getCageHintLabel(cage) {
   return `${cage.target}${sym}`;
 }
 
+function getGridMaxSize() {
+  const w = window.innerWidth;
+  if (w >= 1024) return Math.min(window.innerHeight - 200, 560);
+  if (w >= 768)  return Math.min(w - 64, 500);
+  return Math.min(w - 32, 380);
+}
+
 function renderGrid(puzzle, cellBorders, state) {
   const wrap = document.getElementById('grid-wrap');
   const { size } = puzzle;
 
   // Responsive cell size
-  const maxWrap = Math.min(window.innerWidth - 32, 380);
+  const maxWrap = getGridMaxSize();
   const CELL = Math.floor(maxWrap / size);
   const GRID = CELL * size;
 
@@ -611,11 +654,16 @@ function renderGrid(puzzle, cellBorders, state) {
 ───────────────────────────────────────── */
 function renderNumpad(size) {
   const pad = document.getElementById('numpad');
-  // Numbers 1..size + delete
-  const cols = size + 1;
+  const desktop = window.innerWidth >= 1024;
+  // Desktop: 3-column grid; mobile/tablet: all keys in one row
+  const cols = desktop ? 3 : (size + 1);
   pad.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  const maxWrap = Math.min(window.innerWidth - 32, 380);
-  pad.style.width = maxWrap + 'px';
+  if (desktop) {
+    pad.style.width = '';  // let CSS (.controls-panel) control width
+  } else {
+    const w = window.innerWidth;
+    pad.style.width = (w >= 768 ? Math.min(w - 64, 500) : Math.min(w - 32, 380)) + 'px';
+  }
   pad.innerHTML = '';
   for (let v = 1; v <= size; v++) {
     const btn = document.createElement('div');

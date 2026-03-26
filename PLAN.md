@@ -137,6 +137,56 @@
 
 ---
 
+## 웹 UI 반응형 디자인 스펙 (2026-03-26 /plan-design-review 확정)
+
+### 레이아웃 원칙: 플랫폼별 분리
+- **웹**: 데스크탑 브라우저에 최적화된 2단 레이아웃 + 반응형
+- **앱 (Flutter)**: 모바일 네이티브 레이아웃 (별도 구현)
+
+### 브레이크포인트 3단계
+
+| 구간 | 범위 | 레이아웃 |
+|------|------|--------|
+| 모바일 | < 768px | 현재 단일 컬럼 (변경 없음) |
+| 태블릿 | 768px–1023px | 단일 컬럼, max-width 600px, 그리드 최대 500px |
+| 데스크탑 | ≥ 1024px | **2단 분할** (아래 참고) |
+
+### 데스크탑 레이아웃 (≥ 1024px)
+
+```
+┌─────────────────────────────────────────────┐
+│  CAGEY          0:00          🔥2  ↩        │
+│  ─────────────────────────────────────────  │
+│  🔥Daily  Easy  Medium  Hard  Expert        │
+├──────────────────────┬──────────────────────┤
+│                      │                      │
+│   퍼즐 그리드         │  [ 1 ][ 2 ][ 3 ]    │
+│   (max 560px,        │  [ 4 ][ 5 ][ 6 ]    │
+│    세로 뷰포트에       │  [ 7 ][ 8 ][ ⌫ ]    │
+│    맞게 auto)         │                      │
+│                      │  💡 Hint (3 left)    │
+│                      │                      │
+└──────────────────────┴──────────────────────┘
+```
+
+- 전체 max-width: 1100px (중앙 정렬)
+- 왼쪽 패널: 그리드 (flex: 1, 최소 400px)
+- 오른쪽 패널: 넘패드 + 힌트 (고정 300px)
+- 넘패드: 3×3 그리드 레이아웃 ([1][2][3] / [4][5][6] / [7][8][⌫]) — 전 난이도 동일
+- 그리드 크기: `Math.min(panelHeight - padding, 560)` (데스크탑), 380px (모바일)
+
+### 넘패드 처리
+- **전 브레이크포인트에서 넘패드 표시** (마우스+키보드 모두 지원)
+- 데스크탑에서는 넘패드를 3×N 그리드로 (현재 1행 → 3열 정렬)
+- 키보드 입력 시 해당 버튼 하이라이트 (0.15s 애니메이션)
+
+### 그리드 크기 계산
+- 모바일 (<768px): `Math.min(window.innerWidth - 32, 380)` (기존 유지)
+- 태블릿 (768–1023px): `Math.min(window.innerWidth - 64, 500)`
+- 데스크탑 (≥1024px): `Math.min(leftPanelWidth - 48, 560)` (세로도 고려)
+
+---
+
 ## 마일스톤 (/autoplan 피벗 후 확정)
 
 ### Phase 1: 웹 검증 (2주)
@@ -539,10 +589,10 @@ ENG DUAL VOICES [subagent-only]:
 |--------|---------|-----|------|--------|----------|
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | ⚠️ 2 unresolved taste decisions | Web-first pivot accepted; Remove Ads deferred |
 | Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | Codex unavailable [subagent-only] |
-| Design Review | `/plan-design-review` | UI/UX gaps | 1 | ✅ clean | 5 auto-fixes: hint label, accessibility, font spec |
+| Design Review | `/plan-design-review` | UI/UX gaps | 2 | ✅ clean | score: 3/10→8/10; 2단 데스크탑 레이아웃, 3단 브레이크포인트 확정 |
 | Eng Review | `/plan-eng-review` | Architecture & tests | 1 | ✅ clean | 12 test gaps identified, all auto-decided |
 
-**VERDICT:** APPROVED (with taste decisions resolved by user) — major pivot: web-first + Flutter confirmed.
+**VERDICT:** APPROVED — 웹 UI 반응형 스펙 추가 완료. 구현 준비됨.
 Key risk: DAU acquisition unvalidated — web launch in 2 weeks is the test.
 
 ### TODOS.md Updates (auto-deferred)
