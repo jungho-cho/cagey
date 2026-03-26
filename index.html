@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cagey — Cage Puzzle</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #d0d0cc;
+    --cage-border: #222;
+    --text: #1a1a1a;
+    --muted: #888;
+    --accent: #2563eb;
+    --green: #16a34a;
+    --green-bg: #dcfce7;
+    --red: #dc2626;
+    --red-bg: #fee2e2;
+    --selected-bg: #dbeafe;
+    --selected-border: #2563eb;
+    --hint-bg: #fef3c7;
+    --hint-border: #f59e0b;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── Header ── */
+  header {
+    width: 100%;
+    max-width: 480px;
+    padding: 12px 16px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { font-size: 20px; font-weight: 800; letter-spacing: 3px; }
+  .timer { font-size: 15px; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .undo-btn {
+    font-size: 13px; padding: 5px 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface); color: var(--text); cursor: pointer;
+  }
+  .undo-btn:active { background: #f0f0f0; }
+
+  /* ── Main ── */
+  main {
+    width: 100%;
+    max-width: 480px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+  }
+
+  /* ── Difficulty chips ── */
+  .diff-row {
+    display: flex; gap: 6px;
+  }
+  .diff-chip {
+    font-size: 12px; padding: 4px 12px;
+    border: 1.5px solid var(--border); border-radius: 20px;
+    cursor: pointer; color: var(--muted); background: var(--surface);
+    user-select: none; transition: border-color .15s, color .15s;
+  }
+  .diff-chip.active {
+    border-color: var(--accent); color: var(--accent); font-weight: 600;
+  }
+  .diff-chip.daily {
+    border-color: #f59e0b; background: #fef3c7; color: #92400e; font-weight: 600;
+  }
+  .diff-chip.daily.active {
+    border-color: #d97706; background: #fde68a; color: #78350f;
+  }
+
+  /* ── Grid ── */
+  #grid-wrap {
+    position: relative;
+    touch-action: none;
+  }
+  .grid-cell {
+    position: absolute;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; color: var(--text);
+    background: var(--surface);
+    cursor: pointer; user-select: none;
+    transition: background .1s;
+  }
+  .grid-cell .hint-label {
+    position: absolute; top: 3px; left: 4px;
+    font-size: 9px; font-weight: 700; color: #444; line-height: 1;
+    pointer-events: none;
+  }
+  .grid-cell.selected { background: var(--selected-bg); }
+  .grid-cell.cage-correct { background: var(--green-bg); }
+  .grid-cell.cage-incorrect { background: var(--red-bg); }
+  .grid-cell.cage-hint { background: var(--hint-bg); }
+  /* Cage borders drawn via inline style on each cell */
+
+  /* ── Numpad ── */
+  #numpad {
+    display: grid;
+    gap: 8px;
+  }
+  .num-key {
+    height: 50px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 20px; font-weight: 700; cursor: pointer;
+    background: var(--surface); color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; transition: background .1s;
+  }
+  .num-key:active, .num-key.pressed { background: #e8e8e8; }
+  .num-key.del { font-size: 16px; color: var(--muted); }
+
+  /* ── Hint row ── */
+  .hint-row {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .hint-btn {
+    flex: 1; padding: 10px;
+    border: 1.5px dashed var(--border); border-radius: 10px;
+    background: transparent; cursor: pointer; color: var(--muted);
+    font-size: 13px; text-align: center;
+  }
+  .hint-btn:active { background: #f5f5f0; }
+  .hint-count { font-size: 12px; color: var(--muted); }
+
+  /* ── Banner placeholder ── */
+  .banner {
+    width: 100%; height: 50px; margin-top: auto;
+    background: #f0f0ee; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #bbb; letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ── Modal (Clear screen) ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--surface); border-radius: 20px;
+    padding: 32px 24px; max-width: 360px; width: 100%;
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 18px;
+  }
+  .modal-emoji { font-size: 40px; }
+  .modal-title { font-size: 26px; font-weight: 800; letter-spacing: 2px; }
+  .modal-sub { font-size: 13px; color: var(--muted); }
+  .modal-stats { display: flex; gap: 28px; }
+  .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .stat-num { font-size: 24px; font-weight: 700; }
+  .stat-lbl { font-size: 11px; color: var(--muted); }
+  .share-preview {
+    font-family: monospace; font-size: 13px; color: #444;
+    line-height: 1.8; text-align: center;
+    background: #f9f9f7; border-radius: 8px; padding: 12px 16px;
+    width: 100%;
+  }
+  .share-preview .share-grid-text { font-size: 18px; letter-spacing: 2px; }
+  .modal-btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: 12px; cursor: pointer;
+    font-size: 15px; font-weight: 700;
+  }
+  .modal-btn.primary { background: #1a1a1a; color: white; }
+  .modal-btn.secondary {
+    background: transparent; color: var(--text);
+    border: 1.5px solid var(--border);
+  }
+  .modal-btn:active { opacity: .85; }
+
+  /* ── Loading ── */
+  #loading {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--muted); z-index: 200;
+  }
+  #loading.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="loading">Generating puzzle…</div>
+
+<header>
+  <div class="logo">CAGEY</div>
+  <div class="timer" id="timer">0:00</div>
+  <div id="streak-badge" style="font-size:13px;color:#888">🔥<span id="streak-num">0</span></div>
+  <button class="undo-btn" id="undo-btn">↩ Undo</button>
+</header>
+
+<main>
+  <div class="diff-row" id="diff-row">
+    <div class="diff-chip daily" data-diff="daily">🔥 Daily</div>
+    <div class="diff-chip active" data-diff="easy">Easy</div>
+    <div class="diff-chip" data-diff="medium">Medium</div>
+    <div class="diff-chip" data-diff="hard">Hard</div>
+    <div class="diff-chip" data-diff="expert">Expert</div>
+  </div>
+
+  <div id="grid-wrap"></div>
+
+  <div id="numpad"></div>
+
+  <div class="hint-row">
+    <button class="hint-btn" id="hint-btn">💡 Hint <span id="hint-count">(3 left)</span></button>
+  </div>
+</main>
+
+<div class="banner">ADVERTISEMENT</div>
+
+<!-- Clear / Share modal -->
+<div class="modal-overlay hidden" id="modal">
+  <div class="modal">
+    <div class="modal-emoji">🎉</div>
+    <div class="modal-title">SOLVED!</div>
+    <div class="modal-sub" id="modal-sub">Cagey · Easy 4×4</div>
+    <div class="modal-stats">
+      <div class="stat"><div class="stat-num" id="modal-time">—</div><div class="stat-lbl">Time</div></div>
+      <div class="stat"><div class="stat-num" id="modal-hints">0</div><div class="stat-lbl">Hints</div></div>
+      <div class="stat"><div class="stat-num" id="modal-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
+    </div>
+    <div class="share-preview" id="share-preview"></div>
+    <button class="modal-btn primary" id="share-btn">📤 Share Result</button>
+    <button class="modal-btn secondary" id="next-btn">Next Puzzle →</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────
+   PRNG (mulberry32)
+───────────────────────────────────────── */
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function randInt(rng, min, max) { return min + Math.floor(rng() * (max - min + 1)); }
+function shuffle(arr, rng) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ─────────────────────────────────────────
+   SOLVER
+───────────────────────────────────────── */
+function checkCage(cage, grid) {
+  const vals = cage.cells.map(i => grid[i]);
+  const filled = vals.filter(v => v !== 0);
+  const empty = vals.length - filled.length;
+  if (cage.op === '+') {
+    const sum = filled.reduce((a, b) => a + b, 0);
+    if (empty === 0) return sum === cage.target ? 'satisfied' : 'impossible';
+    if (sum >= cage.target) return 'impossible';
+    return 'ok';
+  } else {
+    const prod = filled.reduce((a, b) => a * b, 1);
+    if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
+    if (cage.target % prod !== 0) return 'impossible';
+    return 'ok';
+  }
+}
+
+function buildCellCageMap(puzzle) {
+  const map = new Array(puzzle.size * puzzle.size).fill(-1);
+  puzzle.cages.forEach((cage, ci) => cage.cells.forEach(idx => { map[idx] = ci; }));
+  return map;
+}
+
+function _solve(grid, pos, puzzle, cellCageMap, rowUsed, colUsed, solutions, stopAt, state) {
+  if (solutions.length >= stopAt) return;
+  if (++state.nodes > state.nodeLimit) return;
+  const { size } = puzzle;
+  const total = size * size;
+  while (pos < total && grid[pos] !== 0) pos++;
+  if (pos === total) {
+    for (const cage of puzzle.cages) {
+      if (checkCage(cage, grid) !== 'satisfied') return;
+    }
+    solutions.push(grid.slice());
+    return;
+  }
+  const row = (pos / size) | 0, col = pos % size;
+  const cage = puzzle.cages[cellCageMap[pos]];
+  for (let val = 1; val <= size; val++) {
+    const bit = 1 << val;
+    if (rowUsed[row] & bit) continue;
+    if (colUsed[col] & bit) continue;
+    grid[pos] = val; rowUsed[row] |= bit; colUsed[col] |= bit;
+    if (checkCage(cage, grid) !== 'impossible') {
+      _solve(grid, pos + 1, puzzle, cellCageMap, rowUsed, colUsed, solutions, stopAt, state);
+      if (solutions.length >= stopAt || state.nodes > state.nodeLimit) {
+        grid[pos] = 0; rowUsed[row] &= ~bit; colUsed[col] &= ~bit; return;
+      }
+    }
+    grid[pos] = 0; rowUsed[row] &= ~bit; colUsed[col] &= ~bit;
+  }
+}
+
+function solve(puzzle, nodeLimit) {
+  nodeLimit = nodeLimit || Infinity;
+  const { size } = puzzle;
+  const grid = new Array(size * size).fill(0);
+  const cellCageMap = buildCellCageMap(puzzle);
+  const rowUsed = new Array(size).fill(0), colUsed = new Array(size).fill(0);
+  const solutions = [];
+  const state = { nodes: 0, nodeLimit };
+  _solve(grid, 0, puzzle, cellCageMap, rowUsed, colUsed, solutions, 2, state);
+  if (state.nodes > state.nodeLimit) return false;
+  if (solutions.length === 0) return null;
+  if (solutions.length === 1) return solutions[0];
+  return false;
+}
+
+/* ─────────────────────────────────────────
+   GENERATOR
+───────────────────────────────────────── */
+const DIFFICULTY = {
+  easy:   { size: 4, ops: ['+'],       cageMin: 2, cageMax: 3, label: 'Easy',   gridLabel: '4×4' },
+  medium: { size: 5, ops: ['+', '*'],  cageMin: 2, cageMax: 3, label: 'Medium', gridLabel: '5×5' },
+  hard:   { size: 6, ops: ['+', '*'],  cageMin: 2, cageMax: 4, label: 'Hard',   gridLabel: '6×6' },
+  expert: { size: 8, ops: ['+', '*'],  cageMin: 2, cageMax: 4, label: 'Expert', gridLabel: '8×8' },
+};
+
+function generateLatinSquare(size, rng) {
+  const grid = [];
+  for (let r = 0; r < size; r++) {
+    const row = [];
+    for (let c = 0; c < size; c++) row.push(((r + c) % size) + 1);
+    grid.push(row);
+  }
+  shuffle(grid, rng);
+  const colPerm = shuffle(Array.from({ length: size }, (_, i) => i), rng);
+  for (let r = 0; r < size; r++) {
+    const orig = grid[r].slice();
+    for (let c = 0; c < size; c++) grid[r][c] = orig[colPerm[c]];
+  }
+  const valPerm = shuffle(Array.from({ length: size }, (_, i) => i + 1), rng);
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++) grid[r][c] = valPerm[grid[r][c] - 1];
+  return grid.flat();
+}
+
+function partitionIntoCages(size, cageMin, cageMax, rng) {
+  const total = size * size;
+  const assigned = new Array(total).fill(false);
+  const cages = [];
+  const order = shuffle(Array.from({ length: total }, (_, i) => i), rng);
+  for (const start of order) {
+    if (assigned[start]) continue;
+    const targetSize = randInt(rng, cageMin, cageMax);
+    const cage = [start];
+    assigned[start] = true;
+    const frontier = [start];
+    while (cage.length < targetSize && frontier.length > 0) {
+      const fi = (rng() * frontier.length) | 0;
+      const cell = frontier[fi]; frontier.splice(fi, 1);
+      const r = (cell / size) | 0, c = cell % size;
+      const neighbors = [];
+      if (r > 0)        neighbors.push(cell - size);
+      if (r < size - 1) neighbors.push(cell + size);
+      if (c > 0)        neighbors.push(cell - 1);
+      if (c < size - 1) neighbors.push(cell + 1);
+      shuffle(neighbors, rng);
+      for (const n of neighbors) {
+        if (!assigned[n] && cage.length < targetSize) {
+          assigned[n] = true; cage.push(n); frontier.push(n);
+        }
+      }
+    }
+    cages.push(cage);
+  }
+  // Merge singleton cages (size < cageMin) into adjacent cages
+  for (let ci = cages.length - 1; ci >= 0; ci--) {
+    if (cages[ci].length >= cageMin) continue;
+    const cellIdx = cages[ci][0];
+    const r = (cellIdx / size) | 0, c = cellIdx % size;
+    const neighbors = [];
+    if (r > 0)        neighbors.push(cellIdx - size);
+    if (r < size - 1) neighbors.push(cellIdx + size);
+    if (c > 0)        neighbors.push(cellIdx - 1);
+    if (c < size - 1) neighbors.push(cellIdx + 1);
+    let merged = false;
+    for (const pass of [false, true]) { // first pass: prefer cages under cageMax; second: any
+      for (const n of neighbors) {
+        const ti = cages.findIndex(cg => cg.includes(n));
+        if (ti >= 0 && ti !== ci && (pass || cages[ti].length < cageMax)) {
+          cages[ti].push(...cages[ci]);
+          cages.splice(ci, 1);
+          merged = true; break;
+        }
+      }
+      if (merged) break;
+    }
+  }
+  return cages;
+}
+
+function generate(difficulty, seed) {
+  const cfg = DIFFICULTY[difficulty];
+  const baseSeed = seed !== undefined ? seed : (Math.random() * 0xFFFFFFFF) >>> 0;
+  const deadline = Date.now() + 2500;
+  for (let attempt = 0; attempt < 80; attempt++) {
+    if (Date.now() > deadline) break;
+    const rng = mulberry32(baseSeed ^ (attempt * 2654435761));
+    const solution = generateLatinSquare(cfg.size, rng);
+    const cellGroups = partitionIntoCages(cfg.size, cfg.cageMin, cfg.cageMax, rng);
+    const cages = cellGroups.map(cells => {
+      const vals = cells.map(i => solution[i]);
+      const prod = vals.reduce((a, b) => a * b, 1);
+      const op = cfg.ops.length > 1 && prod <= 500 && rng() < 0.4 ? '*' : '+';
+      const target = op === '+' ? vals.reduce((a, b) => a + b, 0) : prod;
+      return { cells, op, target };
+    });
+    const puzzle = { size: cfg.size, cages };
+    const result = solve(puzzle, 500000);
+    if (result !== null && result !== false) return { ...puzzle, solution };
+  }
+  return null;
+}
+
+/* ─────────────────────────────────────────
+   DAILY CHALLENGE
+───────────────────────────────────────── */
+const DIFFS = ['easy', 'medium', 'hard', 'expert'];
+const LAUNCH_DATE = new Date('2026-04-01T00:00:00Z');
+
+function getDailyInfo() {
+  const now = new Date();
+  const utcNow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const dayIndex = Math.floor((utcNow - LAUNCH_DATE.getTime()) / 86400000);
+  const puzzleNum = Math.max(1, dayIndex + 1);
+  const diff = DIFFS[dayIndex % 4];
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const seed = mulberry32(parseInt(dateStr))();
+  return { puzzleNum, diff, seed: (seed * 0xFFFFFFFF) >>> 0 };
+}
+
+/* ─────────────────────────────────────────
+   STREAK (localStorage)
+───────────────────────────────────────── */
+function getStreak() {
+  try {
+    const data = JSON.parse(localStorage.getItem('cagey_streak') || '{}');
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    if (data.lastDate === today) return data.count || 0;
+    if (data.lastDate === yesterday) return data.count || 0;
+    return 0;
+  } catch { return 0; }
+}
+
+function incrementStreak() {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const data = JSON.parse(localStorage.getItem('cagey_streak') || '{}');
+    if (data.lastDate === today) return data.count;
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const count = data.lastDate === yesterday ? (data.count || 0) + 1 : 1;
+    localStorage.setItem('cagey_streak', JSON.stringify({ lastDate: today, count }));
+    return count;
+  } catch { return 1; }
+}
+
+/* ─────────────────────────────────────────
+   SHARE TEXT
+───────────────────────────────────────── */
+function formatTime(secs) {
+  const m = (secs / 60) | 0;
+  const s = String(secs % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function buildShareText(puzzleNum, diffLabel, timeSecs, hintsUsed, streak, hintMask, size) {
+  // Emoji grid: ■ = solved without hint, □ = solved with hint used in that cage
+  let emojiGrid = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      emojiGrid += hintMask[r * size + c] ? '□' : '■';
+    }
+    if (r < size - 1) emojiGrid += '\n';
+  }
+  const timeStr = formatTime(timeSecs);
+  const hintStr = hintsUsed === 0 ? 'No hints' : `${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used`;
+  return `Cagey #${puzzleNum} [${diffLabel}] ✓ ${timeStr}\n${hintStr} · ${streak}🔥\ncagey.app\n\n${emojiGrid}`;
+}
+
+/* ─────────────────────────────────────────
+   GRID RENDERER
+───────────────────────────────────────── */
+function computeCellBorders(puzzle) {
+  const { size, cages } = puzzle;
+  const total = size * size;
+  const cellCageMap = new Array(total).fill(-1);
+  cages.forEach((cage, ci) => cage.cells.forEach(idx => { cellCageMap[idx] = ci; }));
+
+  // For each cell, determine which edges are cage boundaries
+  return Array.from({ length: total }, (_, idx) => {
+    const r = (idx / size) | 0, c = idx % size;
+    const ci = cellCageMap[idx];
+    const bt = r === 0         || cellCageMap[idx - size] !== ci;
+    const bb = r === size - 1  || cellCageMap[idx + size] !== ci;
+    const bl = c === 0         || cellCageMap[idx - 1]    !== ci;
+    const br = c === size - 1  || cellCageMap[idx + 1]    !== ci;
+    return { bt, bb, bl, br };
+  });
+}
+
+function getCageHintLabel(cage) {
+  const sym = cage.op === '+' ? '+' : '×';
+  return `${cage.target}${sym}`;
+}
+
+function renderGrid(puzzle, cellBorders, state) {
+  const wrap = document.getElementById('grid-wrap');
+  const { size } = puzzle;
+
+  // Responsive cell size
+  const maxWrap = Math.min(window.innerWidth - 32, 380);
+  const CELL = Math.floor(maxWrap / size);
+  const GRID = CELL * size;
+
+  wrap.style.width = GRID + 'px';
+  wrap.style.height = GRID + 'px';
+
+  // Identify which cell has the cage hint label (top-left cell in each cage)
+  const cageHintCell = new Map();
+  puzzle.cages.forEach((cage, ci) => {
+    const topLeft = cage.cells.reduce((best, idx) => {
+      const br = (idx / size) | 0, bc = idx % size;
+      const br2 = (best / size) | 0, bc2 = best % size;
+      return br < br2 || (br === br2 && bc < bc2) ? idx : best;
+    }, cage.cells[0]);
+    cageHintCell.set(topLeft, ci);
+  });
+
+  wrap.innerHTML = '';
+
+  for (let idx = 0; idx < size * size; idx++) {
+    const r = (idx / size) | 0, c = idx % size;
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    cell.dataset.idx = idx;
+    cell.style.width = CELL + 'px';
+    cell.style.height = CELL + 'px';
+    cell.style.top = (r * CELL) + 'px';
+    cell.style.left = (c * CELL) + 'px';
+
+    // Cage borders
+    const b = cellBorders[idx];
+    const THIN = '1px solid #ccc';
+    const THICK = '2.5px solid #222';
+    cell.style.borderTop    = b.bt ? THICK : THIN;
+    cell.style.borderBottom = b.bb ? THICK : THIN;
+    cell.style.borderLeft   = b.bl ? THICK : THIN;
+    cell.style.borderRight  = b.br ? THICK : THIN;
+
+    // Cage hint label
+    if (cageHintCell.has(idx)) {
+      const ci = cageHintCell.get(idx);
+      const label = document.createElement('span');
+      label.className = 'hint-label';
+      label.textContent = getCageHintLabel(puzzle.cages[ci]);
+      label.style.fontSize = Math.max(8, CELL * 0.2) + 'px';
+      cell.appendChild(label);
+    }
+
+    // Cell value
+    const val = state.grid[idx];
+    if (val !== 0) {
+      const span = document.createElement('span');
+      span.textContent = val;
+      span.style.fontSize = Math.max(14, CELL * 0.45) + 'px';
+      cell.appendChild(span);
+    }
+
+    cell.addEventListener('click', () => selectCell(idx));
+    wrap.appendChild(cell);
+  }
+}
+
+/* ─────────────────────────────────────────
+   NUMPAD RENDERER
+───────────────────────────────────────── */
+function renderNumpad(size) {
+  const pad = document.getElementById('numpad');
+  // Numbers 1..size + delete
+  const cols = size + 1;
+  pad.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  const maxWrap = Math.min(window.innerWidth - 32, 380);
+  pad.style.width = maxWrap + 'px';
+  pad.innerHTML = '';
+  for (let v = 1; v <= size; v++) {
+    const btn = document.createElement('div');
+    btn.className = 'num-key';
+    btn.textContent = v;
+    btn.dataset.val = v;
+    btn.addEventListener('click', () => handleNumKey(v));
+    pad.appendChild(btn);
+  }
+  const del = document.createElement('div');
+  del.className = 'num-key del';
+  del.textContent = '⌫';
+  del.addEventListener('click', () => handleNumKey(0));
+  pad.appendChild(del);
+}
+
+/* ─────────────────────────────────────────
+   GAME STATE
+───────────────────────────────────────── */
+let currentPuzzle = null;
+let currentState = null;
+let selectedCell = -1;
+let currentDiff = 'easy';
+let puzzleNum = 1;
+let timerStart = null;
+let timerInterval = null;
+let hintsUsed = 0;
+let hintMask = [];
+let gameComplete = false;
+const UNDO_LIMIT = 50;
+let undoStack = [];
+let grid = [];
+
+function createState(puzzle) {
+  grid = new Array(puzzle.size * puzzle.size).fill(0);
+  undoStack = [];
+  hintMask = new Array(puzzle.size * puzzle.size).fill(false);
+  hintsUsed = 0;
+  gameComplete = false;
+  selectedCell = -1;
+}
+
+function getCageMap(puzzle) {
+  const map = new Array(puzzle.size * puzzle.size).fill(-1);
+  puzzle.cages.forEach((cage, ci) => cage.cells.forEach(i => { map[i] = ci; }));
+  return map;
+}
+
+function getCageStatus(puzzle, cageMap, ci) {
+  const cage = puzzle.cages[ci];
+  const vals = cage.cells.map(i => grid[i]);
+  if (vals.some(v => v === 0)) return 'incomplete';
+  const result = cage.op === '+' ? vals.reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a * b, 1);
+  return result === cage.target ? 'correct' : 'incorrect';
+}
+
+function isPuzzleComplete(puzzle, cageMap) {
+  return puzzle.cages.every((_, ci) => getCageStatus(puzzle, cageMap, ci) === 'correct');
+}
+
+/* ─────────────────────────────────────────
+   CELL UPDATE + RENDER
+───────────────────────────────────────── */
+let cageBorders = null;
+let cageMap = null;
+
+function updateCellDisplay(idx) {
+  const cell = document.querySelector(`.grid-cell[data-idx="${idx}"]`);
+  if (!cell) return;
+  const val = grid[idx];
+
+  // Update value text (preserve hint-label span)
+  const hintLabel = cell.querySelector('.hint-label');
+  const valSpan = cell.querySelector('span:not(.hint-label)');
+
+  if (val !== 0) {
+    if (valSpan) {
+      valSpan.textContent = val;
+    } else {
+      const span = document.createElement('span');
+      span.textContent = val;
+      const CELL = parseInt(cell.style.width);
+      span.style.fontSize = Math.max(14, CELL * 0.45) + 'px';
+      cell.appendChild(span);
+    }
+  } else {
+    if (valSpan) valSpan.remove();
+  }
+
+  // Update status class
+  const ci = cageMap[idx];
+  const status = getCageStatus(currentPuzzle, cageMap, ci);
+  cell.classList.remove('cage-correct', 'cage-incorrect', 'cage-hint');
+  if (hintMask[idx]) {
+    cell.classList.add('cage-hint');
+  } else if (status === 'correct') {
+    cell.classList.add('cage-correct');
+  } else if (status === 'incorrect') {
+    cell.classList.add('cage-incorrect');
+  }
+
+  // Update selection
+  cell.classList.toggle('selected', idx === selectedCell && !hintMask[idx] && status !== 'correct');
+}
+
+function refreshAllCells() {
+  const total = currentPuzzle.size * currentPuzzle.size;
+  for (let i = 0; i < total; i++) updateCellDisplay(i);
+}
+
+function selectCell(idx) {
+  if (hintMask[idx]) return; // hint cells are locked
+  const prev = selectedCell;
+  selectedCell = idx;
+  if (prev >= 0) updateCellDisplay(prev);
+  updateCellDisplay(idx);
+}
+
+function handleNumKey(val) {
+  if (selectedCell < 0 || gameComplete) return;
+  if (hintMask[selectedCell]) return;
+
+  undoStack.push({ idx: selectedCell, prev: grid[selectedCell] });
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  grid[selectedCell] = val;
+
+  // Update all cells in same cage for status refresh
+  const ci = cageMap[selectedCell];
+  currentPuzzle.cages[ci].cells.forEach(i => updateCellDisplay(i));
+
+  // Check completion
+  if (isPuzzleComplete(currentPuzzle, cageMap)) {
+    clearInterval(timerInterval);
+    gameComplete = true;
+    setTimeout(showClearScreen, 400);
+  }
+}
+
+function handleUndo() {
+  if (undoStack.length === 0 || gameComplete) return;
+  const { idx, prev } = undoStack.pop();
+  grid[idx] = prev;
+  const ci = cageMap[idx];
+  currentPuzzle.cages[ci].cells.forEach(i => updateCellDisplay(i));
+}
+
+/* ─────────────────────────────────────────
+   HINT
+───────────────────────────────────────── */
+const MAX_HINTS = 3;
+
+function handleHint() {
+  if (gameComplete || hintsUsed >= MAX_HINTS) return;
+
+  // Find unfilled or wrong cells (not already hinted)
+  const candidates = [];
+  const total = currentPuzzle.size * currentPuzzle.size;
+  for (let i = 0; i < total; i++) {
+    if (!hintMask[i] && (grid[i] === 0 || grid[i] !== currentPuzzle.solution[i])) {
+      candidates.push(i);
+    }
+  }
+  if (candidates.length === 0) return;
+
+  // Pick a random candidate
+  const idx = candidates[(Math.random() * candidates.length) | 0];
+  grid[idx] = currentPuzzle.solution[idx];
+  hintMask[idx] = true;
+  hintsUsed++;
+
+  const ci = cageMap[idx];
+  currentPuzzle.cages[ci].cells.forEach(i => updateCellDisplay(i));
+  selectedCell = -1;
+
+  document.getElementById('hint-count').textContent =
+    `(${MAX_HINTS - hintsUsed} left)`;
+  if (hintsUsed >= MAX_HINTS) {
+    document.getElementById('hint-btn').style.opacity = '0.4';
+    document.getElementById('hint-btn').disabled = true;
+  }
+
+  if (isPuzzleComplete(currentPuzzle, cageMap)) {
+    clearInterval(timerInterval);
+    gameComplete = true;
+    setTimeout(showClearScreen, 400);
+  }
+}
+
+/* ─────────────────────────────────────────
+   TIMER
+───────────────────────────────────────── */
+function startTimer() {
+  timerStart = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const secs = ((Date.now() - timerStart) / 1000) | 0;
+    document.getElementById('timer').textContent = formatTime(secs);
+  }, 1000);
+}
+
+function getElapsedSecs() {
+  if (!timerStart) return 0;
+  return ((Date.now() - timerStart) / 1000) | 0;
+}
+
+/* ─────────────────────────────────────────
+   CLEAR SCREEN
+───────────────────────────────────────── */
+function showClearScreen() {
+  const secs = getElapsedSecs();
+  const streak = incrementStreak();
+  const diff = DIFFICULTY[currentDiff];
+
+  document.getElementById('modal-sub').textContent =
+    `Cagey · ${diff.label} ${diff.gridLabel} · #${puzzleNum}`;
+  document.getElementById('modal-time').textContent = formatTime(secs);
+  document.getElementById('modal-hints').textContent = hintsUsed;
+  document.getElementById('modal-streak').textContent = streak;
+
+  const shareText = buildShareText(puzzleNum, diff.label, secs, hintsUsed, streak, hintMask, diff.size);
+
+  // Save daily completion
+  if (isDailyMode) {
+    const key = 'cagey_daily_' + new Date().toISOString().slice(0, 10);
+    localStorage.setItem(key, '1');
+    localStorage.setItem(key + '_share', shareText);
+  }
+  isDailyMode = false;
+
+  document.getElementById('share-preview').innerHTML =
+    shareText.replace(/\n/g, '<br>');
+
+  document.getElementById('modal').classList.remove('hidden');
+
+  document.getElementById('share-btn').onclick = () => {
+    if (navigator.share) {
+      navigator.share({ text: shareText }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareText).then(() => {
+        document.getElementById('share-btn').textContent = '✓ Copied!';
+        setTimeout(() => { document.getElementById('share-btn').textContent = '📤 Share Result'; }, 2000);
+      });
+    }
+  };
+  document.getElementById('next-btn').onclick = () => {
+    document.getElementById('modal').classList.add('hidden');
+    newPuzzle(currentDiff);
+  };
+}
+
+/* ─────────────────────────────────────────
+   EXPERT BUNDLE FALLBACK
+───────────────────────────────────────── */
+let expertBundle = null;
+let expertBundleIdx = 0;
+
+async function loadExpertBundle() {
+  if (expertBundle) return;
+  try {
+    const resp = await fetch('./src/expertBundle.json');
+    if (resp.ok) {
+      expertBundle = await resp.json();
+      // Shuffle so repeated sessions get variety
+      for (let i = expertBundle.length - 1; i > 0; i--) {
+        const j = (Math.random() * (i + 1)) | 0;
+        [expertBundle[i], expertBundle[j]] = [expertBundle[j], expertBundle[i]];
+      }
+    }
+  } catch { /* offline or not available */ }
+}
+
+function getExpertFallback() {
+  if (!expertBundle || expertBundle.length === 0) return null;
+  const p = expertBundle[expertBundleIdx % expertBundle.length];
+  expertBundleIdx++;
+  return p;
+}
+
+/* ─────────────────────────────────────────
+   NEW PUZZLE
+───────────────────────────────────────── */
+async function newPuzzle(diff) {
+  isDailyMode = false;
+  currentDiff = diff;
+
+  // Update difficulty chips
+  document.querySelectorAll('.diff-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.diff === diff);
+  });
+
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('timer').textContent = '0:00';
+
+  // Use setTimeout to let the loading screen paint before heavy computation
+  await new Promise(r => setTimeout(r, 50));
+
+  if (diff === 'expert' && !expertBundle) await loadExpertBundle();
+
+  let puzzle = generate(diff);
+  if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
+  if (!puzzle) {
+    document.getElementById('loading').classList.add('hidden');
+    alert('Could not generate puzzle. Please try again.');
+    return;
+  }
+
+  currentPuzzle = puzzle;
+  cageBorders = computeCellBorders(puzzle);
+  cageMap = getCageMap(puzzle);
+  createState(puzzle);
+
+  renderGrid(puzzle, cageBorders, { grid });
+  renderNumpad(puzzle.size);
+  document.getElementById('hint-count').textContent = `(${MAX_HINTS} left)`;
+  document.getElementById('hint-btn').style.opacity = '1';
+  document.getElementById('hint-btn').disabled = false;
+
+  puzzleNum = Math.floor(Math.random() * 9000) + 1; // random for free-play; daily uses real #
+
+  startTimer();
+  document.getElementById('loading').classList.add('hidden');
+}
+
+/* ─────────────────────────────────────────
+   DAILY CHALLENGE MODE
+───────────────────────────────────────── */
+let isDailyMode = false;
+let dailyAlreadySolved = false;
+
+async function startDailyChallenge() {
+  const { puzzleNum: num, diff, seed } = getDailyInfo();
+
+  // Check if already solved today
+  const key = 'cagey_daily_' + new Date().toISOString().slice(0, 10);
+  const solved = localStorage.getItem(key);
+
+  isDailyMode = true;
+  puzzleNum = num;
+
+  // Update chips
+  document.querySelectorAll('.diff-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('.diff-chip.daily').classList.add('active');
+
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('timer').textContent = '0:00';
+  await new Promise(r => setTimeout(r, 50));
+
+  if (diff === 'expert' && !expertBundle) await loadExpertBundle();
+
+  let puzzle = generate(diff, seed);
+  if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
+  if (!puzzle) {
+    document.getElementById('loading').classList.add('hidden');
+    alert('Could not load daily puzzle.');
+    return;
+  }
+
+  currentDiff = diff;
+  currentPuzzle = puzzle;
+  cageBorders = computeCellBorders(puzzle);
+  cageMap = getCageMap(puzzle);
+  createState(puzzle);
+
+  renderGrid(puzzle, cageBorders, { grid });
+  renderNumpad(puzzle.size);
+  document.getElementById('hint-count').textContent = `(${MAX_HINTS} left)`;
+  document.getElementById('hint-btn').style.opacity = '1';
+  document.getElementById('hint-btn').disabled = false;
+
+  // Grey out grid if already solved
+  if (solved) {
+    dailyAlreadySolved = true;
+    gameComplete = true;
+    clearInterval(timerInterval);
+    document.getElementById('grid-wrap').style.opacity = '0.5';
+    document.getElementById('timer').textContent = '✓ Done';
+    document.getElementById('loading').classList.add('hidden');
+    setTimeout(() => {
+      if (confirm('You already solved today\'s puzzle! 🎉\nOpen share text?')) {
+        const shareText = localStorage.getItem(key + '_share') || 'Cagey daily completed!';
+        navigator.clipboard.writeText(shareText).catch(() => {});
+        alert('Copied to clipboard!');
+      }
+    }, 300);
+    return;
+  }
+
+  startTimer();
+  document.getElementById('loading').classList.add('hidden');
+}
+
+/* ─────────────────────────────────────────
+   KEYBOARD SUPPORT
+───────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key >= '1' && e.key <= '9') {
+    const val = parseInt(e.key);
+    if (val <= (currentPuzzle ? currentPuzzle.size : 0)) handleNumKey(val);
+  } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+    handleNumKey(0);
+  } else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault(); handleUndo();
+  } else if (e.key === 'ArrowRight' && selectedCell >= 0) {
+    const size = currentPuzzle.size;
+    selectCell((selectedCell + 1) % (size * size));
+  } else if (e.key === 'ArrowLeft' && selectedCell >= 0) {
+    const size = currentPuzzle.size;
+    selectCell((selectedCell - 1 + size * size) % (size * size));
+  } else if (e.key === 'ArrowDown' && selectedCell >= 0) {
+    const size = currentPuzzle.size;
+    selectCell((selectedCell + size) % (size * size));
+  } else if (e.key === 'ArrowUp' && selectedCell >= 0) {
+    const size = currentPuzzle.size;
+    selectCell((selectedCell - size + size * size) % (size * size));
+  }
+});
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+document.getElementById('undo-btn').addEventListener('click', handleUndo);
+document.getElementById('hint-btn').addEventListener('click', handleHint);
+document.querySelectorAll('.diff-chip:not(.daily)').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (!chip.classList.contains('active')) {
+      isDailyMode = false;
+      newPuzzle(chip.dataset.diff);
+    }
+  });
+});
+document.querySelector('.diff-chip.daily').addEventListener('click', startDailyChallenge);
+
+// Show current streak in header badge
+document.getElementById('streak-num').textContent = getStreak();
+
+// Start with easy puzzle on load
+newPuzzle('easy');
+</script>
+</body>
+</html>

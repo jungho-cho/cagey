@@ -1,0 +1,11 @@
+{
+  "name": "cagey",
+  "version": "0.1.0",
+  "description": "Cage puzzle game — +/× grid puzzles with no sudoku rules",
+  "scripts": {
+    "benchmark": "node scripts/benchmark.js",
+    "test": "node -e \"require('./src/solver'); require('./src/generator'); console.log('imports ok');\""
+  },
+  "keywords": ["cage puzzle", "math puzzle", "kenken"],
+  "license": "MIT"
+}
