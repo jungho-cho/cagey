@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cagey — Free Daily Cage Puzzle Game</title>
 <meta name="description" content="A free daily math puzzle game. Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math. New puzzle every day.">
 <meta name="keywords" content="cage puzzle, math puzzle, daily puzzle, kenken alternative, logic game, free puzzle game, number puzzle">
@@ -247,11 +247,99 @@
     font-size: 14px; color: var(--muted); z-index: 200;
   }
   #loading.hidden { display: none; }
+
+  /* ── Welcome Screen ── */
+  #welcome {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+  }
+  #welcome.hidden { display: none; }
+  .welcome-card {
+    max-width: 380px; width: 90%; padding: 40px 28px;
+    background: var(--surface); border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.08);
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 20px;
+  }
+  .welcome-logo { font-size: 36px; font-weight: 800; letter-spacing: 6px; }
+  .welcome-tagline { font-size: 15px; color: var(--muted); line-height: 1.5; }
+  .welcome-example {
+    background: #f5f5f0; border-radius: 12px; padding: 16px;
+    font-family: monospace; font-size: 14px; line-height: 1.8;
+    text-align: left; width: 100%; color: #444;
+  }
+  .welcome-rule { font-size: 13px; color: var(--text); line-height: 1.7; text-align: left; width: 100%; }
+  .welcome-rule b { color: var(--accent); }
+  .play-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 14px;
+    background: var(--accent); color: white; font-size: 18px;
+    font-weight: 700; cursor: pointer; letter-spacing: 1px;
+    transition: transform .1s;
+  }
+  .play-btn:active { transform: scale(.97); }
+  .welcome-skip { font-size: 12px; color: var(--muted); cursor: pointer; border: none; background: none; }
+
+  /* ── Toast (replaces alert) ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: #1a1a1a; color: white; padding: 12px 24px;
+    border-radius: 12px; font-size: 14px; font-weight: 500;
+    z-index: 400; opacity: 0; transition: opacity .3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Cage complete animation ── */
+  @keyframes cagePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  .grid-cell.cage-pop {
+    animation: cagePulse .35s ease;
+  }
+
+  /* ── Next difficulty suggestion ── */
+  .modal-next-diff {
+    font-size: 13px; color: var(--accent); cursor: pointer;
+    border: none; background: none; font-weight: 600;
+  }
+
+  /* ── Numpad disabled state ── */
+  .num-key.disabled {
+    opacity: 0.3; pointer-events: none;
+  }
 </style>
 </head>
 <body>
 
-<div id="loading">Generating puzzle…</div>
+<!-- Welcome screen (first visit) -->
+<div id="welcome" class="hidden">
+  <div class="welcome-card">
+    <div class="welcome-logo">CAGEY</div>
+    <div class="welcome-tagline">A daily cage math puzzle.<br>No sudoku rules — just + and &times;.</div>
+    <div class="welcome-rule">
+      <b>How to play:</b><br>
+      Fill each cage so the numbers add up (or multiply) to the target shown in the corner.<br>
+      Use numbers 1 to N (grid size). That's it!
+    </div>
+    <div class="welcome-example">
+      ┌─────┬─────┐<br>
+      │ <b>7+</b>&nbsp; │ <b>3&times;</b> │<br>
+      │&nbsp;3 4 │&nbsp;1 3 │<br>
+      ├─────┼─────┤<br>
+      │ <b>4&times;</b>&nbsp; │ <b>5+</b>&nbsp; │<br>
+      │&nbsp;1 4 │&nbsp;2 3 │<br>
+      └─────┴─────┘
+    </div>
+    <button class="play-btn" id="play-btn">Play</button>
+    <button class="welcome-skip" id="skip-tutorial">Don't show again</button>
+  </div>
+</div>
+
+<div id="loading" class="hidden">Generating puzzle…</div>
+<div class="toast" id="toast"></div>
 
 <header>
   <div class="logo">CAGEY</div>
@@ -298,11 +386,24 @@
     <div class="share-preview" id="share-preview"></div>
     <button class="modal-btn primary" id="share-btn">📤 Share Result</button>
     <button class="modal-btn secondary" id="next-btn">Next Puzzle →</button>
+    <button class="modal-next-diff hidden" id="try-harder-btn"></button>
   </div>
 </div>
 
 <script>
 'use strict';
+
+/* ─────────────────────────────────────────
+   TOAST (replaces alert)
+───────────────────────────────────────── */
+let _toastTimer = null;
+function showToast(msg, ms = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.classList.remove('show'); _toastTimer = null; }, ms);
+}
 
 /* ─────────────────────────────────────────
    PRNG (mulberry32)
@@ -859,11 +960,50 @@ function selectCell(idx) {
   selectedCell = idx;
   if (prev >= 0) updateCellDisplay(prev);
   updateCellDisplay(idx);
+  updateNumpadState();
+}
+
+function updateNumpadState() {
+  document.querySelectorAll('.num-key').forEach(k => {
+    k.classList.toggle('disabled', selectedCell < 0 || gameComplete);
+  });
+}
+
+function saveProgress() {
+  if (!currentPuzzle || gameComplete) return;
+  try {
+    localStorage.setItem('cagey_progress', JSON.stringify({
+      diff: currentDiff, grid, hintMask, hintsUsed, undoStack,
+      puzzleNum, isDailyMode, elapsed: getElapsedSecs(),
+      savedDate: new Date().toISOString().slice(0, 10),
+      puzzle: { size: currentPuzzle.size, cages: currentPuzzle.cages, solution: currentPuzzle.solution }
+    }));
+  } catch {}
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem('cagey_progress');
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    // Basic shape validation to avoid crashes on corrupt data
+    if (!data || !data.puzzle || !data.puzzle.size || !Array.isArray(data.grid)) return null;
+    const expected = data.puzzle.size * data.puzzle.size;
+    if (data.grid.length !== expected) return null;
+    if (data.hintMask && data.hintMask.length !== expected) data.hintMask = null;
+    return data;
+  } catch { return null; }
+}
+
+function clearProgress() {
+  localStorage.removeItem('cagey_progress');
 }
 
 function handleNumKey(val) {
   if (selectedCell < 0 || gameComplete) return;
   if (hintMask[selectedCell]) return;
+
+  const prevStatus = getCageStatus(currentPuzzle, cageMap, cageMap[selectedCell]);
 
   undoStack.push({ idx: selectedCell, prev: grid[selectedCell] });
   if (undoStack.length > UNDO_LIMIT) undoStack.shift();
@@ -873,10 +1013,27 @@ function handleNumKey(val) {
   const ci = cageMap[selectedCell];
   currentPuzzle.cages[ci].cells.forEach(i => updateCellDisplay(i));
 
+  // Cage completion animation
+  const newStatus = getCageStatus(currentPuzzle, cageMap, ci);
+  if (newStatus === 'correct' && prevStatus !== 'correct') {
+    currentPuzzle.cages[ci].cells.forEach(i => {
+      const cell = document.querySelector(`.grid-cell[data-idx="${i}"]`);
+      if (cell) {
+        cell.classList.remove('cage-pop');
+        void cell.offsetWidth; // force reflow
+        cell.classList.add('cage-pop');
+      }
+    });
+  }
+
+  // Auto-save progress
+  saveProgress();
+
   // Check completion
   if (isPuzzleComplete(currentPuzzle, cageMap)) {
     clearInterval(timerInterval);
     gameComplete = true;
+    clearProgress();
     setTimeout(showClearScreen, 400);
   }
 }
@@ -887,6 +1044,7 @@ function handleUndo() {
   grid[idx] = prev;
   const ci = cageMap[idx];
   currentPuzzle.cages[ci].cells.forEach(i => updateCellDisplay(i));
+  saveProgress();
 }
 
 /* ─────────────────────────────────────────
@@ -936,6 +1094,8 @@ function handleHint() {
 
   document.getElementById('hint-count').textContent =
     `(${MAX_HINTS - hintsUsed} left)`;
+  saveProgress();
+
   if (hintsUsed >= MAX_HINTS) {
     document.getElementById('hint-btn').style.opacity = '0.4';
     document.getElementById('hint-btn').disabled = true;
@@ -973,6 +1133,7 @@ function showClearScreen() {
   const wasDaily = isDailyMode; // capture before any resets
   const streak = wasDaily ? incrementStreak() : getStreak();
   document.getElementById('streak-num').textContent = streak;
+  document.getElementById('streak-badge').style.display = streak > 0 ? '' : 'none';
   const diff = DIFFICULTY[currentDiff];
 
   document.getElementById('modal-sub').textContent =
@@ -1013,6 +1174,23 @@ function showClearScreen() {
     document.getElementById('modal').classList.add('hidden');
     newPuzzle(currentDiff);
   };
+
+  // "Try harder" suggestion
+  const diffOrder = ['easy', 'medium', 'hard', 'expert'];
+  const curIdx = diffOrder.indexOf(currentDiff);
+  const tryBtn = document.getElementById('try-harder-btn');
+  if (curIdx >= 0 && curIdx < diffOrder.length - 1 && !wasDaily) {
+    const nextDiff = diffOrder[curIdx + 1];
+    const nextLabel = DIFFICULTY[nextDiff].label + ' ' + DIFFICULTY[nextDiff].gridLabel;
+    tryBtn.textContent = 'Ready for a challenge? Try ' + nextLabel + ' →';
+    tryBtn.classList.remove('hidden');
+    tryBtn.onclick = () => {
+      document.getElementById('modal').classList.add('hidden');
+      newPuzzle(nextDiff);
+    };
+  } else {
+    tryBtn.classList.add('hidden');
+  }
 }
 
 /* ─────────────────────────────────────────
@@ -1067,10 +1245,11 @@ async function newPuzzle(diff) {
   if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
   if (!puzzle) {
     document.getElementById('loading').classList.add('hidden');
-    alert('Could not generate puzzle. Please try again.');
+    showToast('Could not generate puzzle. Try again.');
     return;
   }
 
+  clearProgress();
   currentPuzzle = puzzle;
   cageBorders = computeCellBorders(puzzle);
   cageMap = getCageMap(puzzle);
@@ -1079,6 +1258,7 @@ async function newPuzzle(diff) {
   document.getElementById('grid-wrap').style.opacity = '1'; // reset if greyed from daily-already-solved
   renderGrid(puzzle, cageBorders, { grid });
   renderNumpad(puzzle.size);
+  updateNumpadState();
   document.getElementById('hint-count').textContent = `(${MAX_HINTS} left)`;
   document.getElementById('hint-btn').style.opacity = '1';
   document.getElementById('hint-btn').disabled = false;
@@ -1119,7 +1299,7 @@ async function startDailyChallenge() {
   if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
   if (!puzzle) {
     document.getElementById('loading').classList.add('hidden');
-    alert('Could not load daily puzzle.');
+    showToast('Could not load daily puzzle.');
     return;
   }
 
@@ -1143,14 +1323,7 @@ async function startDailyChallenge() {
     document.getElementById('grid-wrap').style.opacity = '0.5';
     document.getElementById('timer').textContent = '✓ Done';
     document.getElementById('loading').classList.add('hidden');
-    setTimeout(() => {
-      if (confirm('You already solved today\'s puzzle! 🎉\nOpen share text?')) {
-        const shareText = localStorage.getItem(key + '_share') || 'Cagey daily completed!';
-        navigator.clipboard.writeText(shareText)
-          .then(() => alert('Copied to clipboard!'))
-          .catch(() => alert('Could not copy – try again.'));
-      }
-    }, 300);
+    showToast('Already solved today!');
     return;
   }
 
@@ -1197,10 +1370,19 @@ document.querySelectorAll('.diff-chip:not(.daily)').forEach(chip => {
     }
   });
 });
-document.querySelector('.diff-chip.daily').addEventListener('click', startDailyChallenge);
+document.querySelector('.diff-chip.daily').addEventListener('click', () => {
+  startDailyChallenge();
+});
 
-// Show current streak in header badge
-document.getElementById('streak-num').textContent = getStreak();
+// Show current streak in header badge (hide if 0)
+const streak = getStreak();
+const streakBadge = document.getElementById('streak-badge');
+if (streak > 0) {
+  document.getElementById('streak-num').textContent = streak;
+  streakBadge.style.display = '';
+} else {
+  streakBadge.style.display = 'none';
+}
 
 // Re-render grid on orientation change / resize
 let _resizeTimer;
@@ -1211,12 +1393,82 @@ window.addEventListener('resize', () => {
       renderGrid(currentPuzzle, cageBorders, { grid });
       renderNumpad(currentPuzzle.size);
       refreshAllCells();
+      updateNumpadState();
     }
   }, 150);
 });
 
-// Start with easy puzzle on load
-newPuzzle('easy');
+// Welcome screen logic
+function startGame() {
+  document.getElementById('welcome').classList.add('hidden');
+
+  // Try to restore saved progress
+  const saved = loadProgress();
+  // Invalidate stale daily saves (prevent streak inflation from yesterday's puzzle)
+  if (saved && saved.isDailyMode) {
+    const today = new Date().toISOString().slice(0, 10);
+    const savedDate = saved.savedDate;
+    if (savedDate !== today) {
+      clearProgress();
+      newPuzzle('easy');
+      return;
+    }
+  }
+  if (saved && saved.puzzle) {
+    currentDiff = saved.diff || 'easy';
+    currentPuzzle = saved.puzzle;
+    puzzleNum = saved.puzzleNum || 1;
+    isDailyMode = saved.isDailyMode || false;
+    cageBorders = computeCellBorders(currentPuzzle);
+    cageMap = getCageMap(currentPuzzle);
+    grid = saved.grid;
+    hintMask = saved.hintMask || new Array(currentPuzzle.size * currentPuzzle.size).fill(false);
+    hintsUsed = saved.hintsUsed || 0;
+    undoStack = saved.undoStack || [];
+    gameComplete = false;
+    selectedCell = -1;
+
+    document.querySelectorAll('.diff-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.diff === currentDiff);
+    });
+    renderGrid(currentPuzzle, cageBorders, { grid });
+    renderNumpad(currentPuzzle.size);
+    refreshAllCells();
+    updateNumpadState();
+    document.getElementById('hint-count').textContent = `(${MAX_HINTS - hintsUsed} left)`;
+    if (hintsUsed >= MAX_HINTS) {
+      document.getElementById('hint-btn').style.opacity = '0.4';
+      document.getElementById('hint-btn').disabled = true;
+    }
+    // Resume timer from saved elapsed
+    timerStart = Date.now() - (saved.elapsed || 0) * 1000;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const secs = ((Date.now() - timerStart) / 1000) | 0;
+      document.getElementById('timer').textContent = formatTime(secs);
+    }, 1000);
+    document.getElementById('timer').textContent = formatTime(saved.elapsed || 0);
+    document.getElementById('loading').classList.add('hidden');
+    showToast('Progress restored');
+  } else {
+    newPuzzle('easy');
+  }
+}
+
+const hasVisited = localStorage.getItem('cagey_visited');
+if (!hasVisited) {
+  document.getElementById('welcome').classList.remove('hidden');
+  document.getElementById('play-btn').addEventListener('click', () => {
+    localStorage.setItem('cagey_visited', '1');
+    startGame();
+  });
+  document.getElementById('skip-tutorial').addEventListener('click', () => {
+    localStorage.setItem('cagey_visited', '1');
+    startGame();
+  });
+} else {
+  startGame();
+}
 </script>
 </body>
 </html>
