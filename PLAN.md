@@ -253,7 +253,379 @@
 
 ---
 
-<!-- /autoplan restore point: /home/junghocho/.gstack/projects/cagey/-autoplan-restore-20260326-113303.md -->
+<!-- /autoplan restore point: /Users/junghocho/.gstack/projects/jungho-cho-cagey/master-autoplan-restore-20260327-093926.md -->
+
+## /autoplan Review — 2026-03-27
+
+**Mode:** SELECTIVE EXPANSION | **Voices:** Claude subagent [subagent-only, Codex unavailable]
+**Design doc:** `junghocho-master-design-20260327-092155.md` (APPROVED)
+**Premises confirmed:** P1 accepted (cage-only verification required), P2/P3 taste decisions deferred
+
+---
+
+### Phase 1: CEO Review (2026-03-27)
+
+#### 0A. Premise Status
+
+| # | Premise | Verdict | Risk |
+|---|---------|---------|------|
+| P1 | No row/col rules + hidden Latin square | **Code fix required** — cage-only uniqueness verification | CRITICAL |
+| P2 | AdMob/AdSense → €200/month at DAU 800 | Reasonable for free-play; breaks if daily-only | MED |
+| P3 | Wordle-style share works for math | Unvalidated — share artifact needs more story | HIGH |
+| P4 | Web + Flutter parallel manageable | Code duplication already showing (index.html vs src/) | MED |
+| P5 | Web validates demand before Flutter | Sound but design doc says "immediately" = parallel risk | MED |
+
+#### 0B. Existing Code Leverage
+
+Web prototype is **complete** with all MVP features:
+- `src/solver.js` — Backtracking solver with Latin square pruning
+- `src/generator.js` — Puzzle generator, mulberry32 PRNG seeded
+- `src/gameState.js` — Game state + undo stack (UNDO_LIMIT=50)
+- `src/expertBundle.json` — 53KB pre-generated expert puzzles
+- `index.html` — Full game UI with responsive 3-breakpoint layout
+
+#### 0C. Dream State
+
+```
+NOW (web MVP done)    →  2주 (웹 론칭)              →  12개월
+──────────────────      ─────────────────────────      ──────────────────────
+· Solver + generator    · Vercel deployed               · DAU 3,000-5,000
+· 4 difficulty tiers    · GA4 + AdSense live            · €500+/month
+· Daily + streak        · r/puzzles + HN launch         · Flutter/PWA on stores
+· Responsive 3bp        · Share tracking active          · Remove Ads IAP
+· Expert bundle         · 2-week validation data
+```
+
+#### 0D. Error & Rescue Registry
+
+| Error | Trigger | User sees | Mitigation |
+|-------|---------|-----------|------------|
+| Hidden Latin-square rejection | Cage-valid but Latin-invalid answer | "Wrong" on correct-looking answer | **CRITICAL: cage-only uniqueness verification** |
+| AdSense not approved at launch | Google review 2-4 weeks | No ads | Launch without ads |
+| Share not tracked | No UTM on share URL | Can't measure virality | GA4 event + UTM |
+| Daily puzzle collision | sha256 mod 500 | Repeat puzzle | 1.4 years before repeat |
+
+#### 0E. Temporal Interrogation
+
+```
+Day 1-2:  Vercel deploy + GA4 + cage-only verification fix
+Day 3-5:  r/puzzles, HN Show HN
+Week 2:   GO/NO-GO: DAU ≥ 20 → proceed. < 20 → investigate
+Week 3-8: Flutter OR PWA (taste decision)
+Week 10+: Revenue starts
+```
+
+#### Failure Modes Registry
+
+| Mode | Probability | Impact | Mitigation |
+|------|------------|--------|-----------|
+| Player answer rejected by hidden constraint | Medium | **Game-breaking** | Cage-only verification |
+| Zero viral traction | High | DAU <20 | Iterate share format |
+| NYT copies format | Low | Existential | Ship fast, build community |
+| Flutter = sunk cost before validation | Medium | Weeks wasted | Sequential gate (taste decision) |
+
+#### CEO Dual Voice Consensus
+
+```
+CEO DUAL VOICES [subagent-only]:
+═══════════════════════════════════════════════════════════════
+  Dimension                           Claude  Codex  Consensus
+  ──────────────────────────────────── ─────── ─────── ─────────
+  1. Premises valid?                   ⚠️      N/A    PARTIAL
+  2. Right problem to solve?           ✓       N/A    CONFIRMED
+  3. Scope calibration correct?        ⚠️      N/A    DISAGREE*
+  4. Alternatives sufficiently explored?⚠️     N/A    DISAGREE*
+  5. Competitive/market risks covered? ⚠️      N/A    PARTIAL
+  6. 6-month trajectory sound?         ⚠️      N/A    PARTIAL
+═══════════════════════════════════════════════════════════════
+*Daily-only launch + PWA as alternative flagged
+```
+
+#### NOT in Scope (CEO)
+- 뺄셈/나눗셈 연산자 (v2)
+- 소셜 기능, 리더보드 (v2)
+- 구독 모델 (v2)
+- 유저 퍼즐 생성 (v2+)
+
+#### CEO Completion Summary
+- **Critical fix:** Hidden Latin-square constraint — cage-only uniqueness verification
+- **Subagent concerns:** Daily-only launch, sequential gate, PWA underexplored
+- **Auto-approved:** Ship web this week, GA4 tracking, UTM on shares
+- **Taste decisions:** (1) Sequential vs parallel Flutter, (2) PWA vs Flutter for mobile
+
+**Phase 1 complete.** Claude subagent: 9 findings (2 critical, 5 high, 2 medium). Consensus: 1/6 confirmed, 5 partial/disagree.
+
+---
+
+### Phase 2: Design Review (2026-03-27)
+
+#### Design Scope Assessment: 8/10 (실제 코드 구현됨)
+
+index.html에 전체 UI 구현 완료. 3 브레이크포인트 반응형. No DESIGN.md exists.
+
+#### Design Litmus Scorecard
+
+```
+DESIGN LITMUS [subagent-only]:
+═══════════════════════════════════════════════════════════════
+  Dimension                    Score  Issues
+  ──────────────────────────── ─────── ──────────────────────
+  1. Information hierarchy      6/10   No onboarding; streak badge noise
+  2. Interaction states         4/10   alert()/confirm() for errors;
+                                       no empty-selection state
+  3. User journey / emotion     5/10   Flat mid-puzzle; no progression nudge
+  4. Specificity of decisions   7/10   Plan/code disagree on typography
+  5. AI slop risk               6/10   Default Tailwind palette
+  6. Responsive / viewport      8/10   user-scalable=no is a11y violation
+  7. Accessibility              3/10   No ARIA, color-only, no focus styles
+═══════════════════════════════════════════════════════════════
+OVERALL: 39/70
+```
+
+**Pass 1 — Information Hierarchy (6/10):**
+- 첫 방문자에게 게임 설명 없음 — 빈 그리드만 보임
+- 스트릭 뱃지가 0일 때도 표시 (의미 없는 노이즈)
+- 케이지 힌트 라벨 8×8에서 ~9px — 읽기 어려움
+- **Auto-fix:** 첫 방문 온보딩 오버레이 추가, 스트릭 0일 때 뱃지 숨김, 힌트 최소 크기 보장
+
+**Pass 2 — Interaction States (4/10):**
+- `alert()`/`confirm()` 사용 (에러, 데일리 이미 풀림) — 네이티브 다이얼로그 2연속
+- 셀 미선택 시 넘패드 활성화되어 있지만 아무 동작 안 함
+- 페이지 새로고침 시 진행상황 소실
+- **Auto-fix:** 인앱 UI로 교체, 미선택 시 넘패드 비활성화, localStorage 저장
+
+**Pass 3 — User Journey (5/10):**
+- 첫 5초가 죽은 시간 — 환영/설명 없음
+- 퍼즐 중간에 긍정 피드백 없음 (케이지 완성 시 애니메이션 없음)
+- 클리어 후 다음 난이도 제안 없음
+- **Auto-fix:** 케이지 완성 시 미세 펄스 애니메이션, 클리어 모달에 난이도 업 제안
+
+**Pass 4 — Specificity (7/10):**
+- 플랜은 "모노스페이스" 지정, 코드는 시스템 sans-serif 사용 — 불일치
+- 클리어 애니메이션 "파티클 효과" 계획 but 미구현
+- **Auto-fix:** tabular-nums 사용, 클리어 시 간단한 축하 애니메이션
+
+**Pass 5 — AI Slop Risk (6/10):**
+- Tailwind 기본 색상 (#2563eb, #16a34a, #dc2626) — 브랜드 정체성 없음
+- 클리어 모달이 Wordle 클론과 동일한 레이아웃
+- **TASTE DECISION:** 브랜드 색상 커스터마이즈 여부
+
+**Pass 6 — Responsive (8/10):**
+- `user-scalable=no` — WCAG 1.4.4 위반
+- 데스크탑 넘패드 고정 260px — 8×8에서 비례 맞지 않음
+- **Auto-fix:** user-scalable=no 제거, touch-action: manipulation 사용
+
+**Pass 7 — Accessibility (3/10):**
+- **CRITICAL:** ARIA role/label 전무 — 스크린리더 사용 불가
+- **CRITICAL:** 초록/빨강 색상만으로 피드백 — 색맹 사용자 구분 불가
+- **CRITICAL:** focus 스타일 없음 — 키보드 사용자 현재 위치 파악 불가
+- **CRITICAL:** 그리드 셀 tabindex 없음 — 키보드만으로 게임 시작 불가
+- **Auto-fix:** ARIA 추가, ✓/✗ 아이콘으로 이중 피드백, :focus-visible 스타일, tabindex 추가
+
+**Design Completion Summary:**
+- 반응형: 잘 구현됨 (8/10), user-scalable 수정만 필요
+- 접근성: 심각 (3/10) — ARIA, 색상, 포커스, 키보드 전반 수정 필요
+- UX: 온보딩 없음, alert() 제거, 진행상황 저장 필요
+- 브랜드: Tailwind 기본 색상 → taste decision
+
+**Phase 2 complete.** 7 dimensions reviewed. 12 auto-fixes, 1 taste decision. Score: 39/70.
+
+---
+
+### Phase 3: Engineering Review (2026-03-27)
+
+#### Step 0: Scope Challenge
+
+Sub-problems mapped to existing code:
+
+| Sub-problem | Existing code | Status |
+|-------------|--------------|--------|
+| Backtracking solver | `src/solver.js` + `index.html` inline | ✅ Built — **DUPLICATED** |
+| Puzzle generator | `src/generator.js` + `index.html` inline | ✅ Built — **DUPLICATED** |
+| Game state + undo | `src/gameState.js` + `index.html` inline | ✅ Built — **DUPLICATED** |
+| Expert bundle | `src/expertBundle.json` (53KB) | ✅ Pre-generated |
+| Grid rendering | `index.html` inline | ✅ Built, responsive |
+| Daily challenge | `index.html` inline (mulberry32+UTC) | ✅ Built |
+| Streak system | `index.html` inline (localStorage) | ✅ Built |
+| Share text | `index.html` inline | ✅ Built |
+| Benchmark | `scripts/benchmark.js` | ✅ Passes (avg 1162ms, 2/10 fallbacks) |
+| Cage-only uniqueness | **DOES NOT EXIST** | ❌ CRITICAL GAP |
+
+**Complexity check:** Code duplication (src/ vs index.html) is the primary architectural debt. The solver's hidden Latin-square constraint is the primary correctness risk.
+
+#### Architecture ASCII Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Cagey Web App                             │
+├────────────────┬──────────────────────┬─────────────────────┤
+│  src/ (Node)   │  index.html (inline) │   External          │
+│                │                      │                     │
+│  solver.js ────┤── DUPLICATED ──────► │   localStorage      │
+│  generator.js ─┤── DUPLICATED ──────► │     ├── streak      │
+│  gameState.js ─┤── DUPLICATED ──────► │     └── dailyDate   │
+│  expertBundle  │── INLINED ─────────► │                     │
+│  .json (53KB)  │                      │   Clipboard API     │
+│                │  UI Layer:           │     └── share text  │
+│  benchmark.js  │  ├── Header+Timer    │                     │
+│  (Node only)   │  ├── DifficultyChips │                     │
+│                │  ├── Grid+CageBorder │                     │
+│                │  ├── NumPad          │                     │
+│                │  ├── HintButton      │                     │
+│                │  ├── ClearModal      │                     │
+│                │  └── AdPlaceholder   │                     │
+└────────────────┴──────────────────────┴─────────────────────┘
+
+⚠ CRITICAL: solver uses row/col Latin-square pruning (lines 87-89)
+            but player has NO row/col constraints
+            → cage-only uniqueness verification MISSING
+```
+
+#### Section 1: Architecture
+
+- **Code duplication:** `src/` files and `index.html` inline copies diverge. Bug fixes must be applied in two places. The `src/` files serve only `benchmark.js` and the `package.json test` command.
+- **Auto-decide (P5/explicit):** Add esbuild or similar bundler to eliminate duplication. Or remove `src/` and inline benchmark into HTML test mode.
+- **Single-file architecture:** All UI in one 1100+ line HTML file. Acceptable for a side project MVP but will become unmaintainable if features grow.
+
+#### Section 2: Code Quality
+
+- **Solver correctness gap (CRITICAL):** `_solve()` at line 85-89 uses `rowUsed[row] & bit` and `colUsed[col] & bit` to prune. This means the solver finds solutions that are Latin squares. When verifying uniqueness (`stopAt=2`), it only counts Latin-square solutions. A puzzle could have:
+  - 1 Latin-square solution (solver says "unique") ✓
+  - 3 cage-arithmetic-only solutions (player perspective: ambiguous) ✗
+  - **Player could fill in a cage-valid but Latin-invalid answer → game says "wrong"**
+- **Naming:** Consistent use of "cage" throughout — no "group" vs "cage" confusion.
+- **DRY violation:** `checkCage()` and game state logic exist in both `src/solver.js` and `index.html`. They could drift.
+
+#### Section 3: Test Plan
+
+**New UX flows and codepaths — full diagram:**
+
+| # | Flow | Type | Exists? | Gap? | Auto-decision |
+|---|------|------|---------|------|---------------|
+| 1 | Solver: 4×4 unique solution | Unit | ❌ | YES | AUTO-APPROVE (P1) |
+| 2 | Solver: 8×8 performance | Benchmark | ✅ | — | — |
+| 3 | **Cage-only uniqueness verification** | Unit | ❌ | **CRITICAL** | AUTO-APPROVE (P1) |
+| 4 | Generator: valid puzzle per difficulty | Unit | ❌ | YES | AUTO-APPROVE (P1) |
+| 5 | Generator: seed determinism | Unit | ❌ | YES | AUTO-APPROVE (P1) |
+| 6 | GameState: set + undo + status | Unit | ❌ | YES | AUTO-APPROVE (P1) |
+| 7 | Daily: UTC date consistency | Unit | ❌ | YES | AUTO-APPROVE (P1) |
+| 8 | Streak: increment/reset logic | Unit | ❌ | YES | AUTO-APPROVE (P1) |
+| 9 | Share text format | Snapshot | ❌ | YES | AUTO-APPROVE (P1) |
+| 10 | Expert bundle validation | Validation | ❌ | YES | AUTO-APPROVE (P1) |
+
+Test plan artifact: `~/.gstack/projects/jungho-cho-cagey/junghocho-master-test-plan-20260327-094500.md`
+
+**Benchmark results (actual run):**
+```
+8×8 Expert: avg 1162ms (budget <2000ms), 2/10 fallbacks needed
+PASS with WARNINGS — expert bundle is essential
+```
+
+#### Section 4: Performance
+
+- **Solver:** 8×8 avg 1162ms, max 2542ms. Expert bundle fallback covers worst cases.
+- **Memory:** Undo stack capped at 50 (code verified: `UNDO_LIMIT = 50` in gameState.js line 7).
+- **Re-render:** index.html re-renders entire grid on each cell change via `renderGrid()`. No virtual DOM. For 8×8 (64 cells), this means 64 DOM updates per keystroke. Acceptable for now, but noticeable lag possible on low-end devices.
+- **Expert bundle:** 53KB JSON inlined in HTML. Adds to initial page load. Could be lazy-loaded.
+- **No N+1:** No database, no network for puzzle data. Only localStorage for streak.
+
+#### Eng Dual Voice Consensus
+
+```
+ENG DUAL VOICES [subagent-only]:
+═══════════════════════════════════════════════════════════════
+  Dimension                           Claude  Codex  Consensus
+  ──────────────────────────────────── ─────── ─────── ─────────
+  1. Architecture sound?               ⚠️      N/A    PARTIAL
+     Code duplication src/ vs index.html
+  2. Test coverage sufficient?         ⚠️      N/A    PARTIAL
+     0 tests exist (only import check + benchmark)
+  3. Performance risks addressed?      ✓       N/A    CONFIRMED
+     Benchmark passes, expert bundle covers worst case
+  4. Security threats covered?         ✓       N/A    CONFIRMED
+     No server, no user data, localStorage only
+  5. Error paths handled?              ⚠️      N/A    PARTIAL
+     alert()/confirm() for errors (flagged in Design)
+  6. Deployment risk manageable?       ✓       N/A    CONFIRMED
+     Static HTML on Vercel = zero risk
+═══════════════════════════════════════════════════════════════
+```
+
+#### Section 5: Additional Eng Subagent Findings (2026-03-27)
+
+| # | Finding | Severity | Auto-decision |
+|---|---------|----------|---------------|
+| 21 | Main thread blocking (generate() up to 2.5s) | HIGH | AUTO-FIX: Web Worker (P1) |
+| 22 | Multiplication pruning gap (no upper bound) | HIGH | AUTO-FIX: add bound check (P3) |
+| 23 | Solution exposed on `currentPuzzle.solution` | HIGH | DEFER: accept for MVP (P6) |
+| 24 | Latin square generator limited randomness | MEDIUM | DEFER: document limitation (P3) |
+| 25 | innerHTML XSS pattern in share-preview | MEDIUM | AUTO-FIX: use textContent (P5) |
+| 26 | `gameState.js` is dead code | MEDIUM | AUTO-FIX: delete or integrate (P5) |
+| 27 | Daily seed predictable (no salt) | MEDIUM | DEFER: accept for offline game (P3) |
+| 28 | No input validation on cell/value | MEDIUM | AUTO-FIX: add bounds check (P5) |
+
+**Key insight from subagent:** `isPuzzleComplete()` only checks cage arithmetic — a non-Latin-square answer that satisfies all cages would be marked "SOLVED". But `solution[]` (used by hints) could differ. This creates an inconsistency where hints contradict the player's valid partial work.
+
+#### NOT in Scope (Eng)
+
+- Bundler setup (deferred — complexity not justified for 1 file)
+- Dark mode (v1.1)
+- Server-side puzzle generation
+- WebSocket/real-time features
+
+#### What Already Exists
+
+Everything needed for web launch is built:
+- Solver, generator, game state — all working
+- 4 difficulty tiers with auto-generation
+- Daily challenge with seeded PRNG
+- Streak system with localStorage
+- Share text generation (Wordle-style)
+- Responsive 3-breakpoint layout
+- Expert puzzle bundle (fallback for slow generation)
+
+**Phase 3 complete.** Architecture diagram produced. Test plan written (10 gaps, 1 critical). Benchmark run: PASS with warnings.
+
+---
+
+### Decision Audit Trail (2026-03-27)
+
+| # | Phase | Decision | Principle | Rationale | Rejected |
+|---|-------|----------|-----------|-----------|----------|
+| 1 | CEO | Mode: SELECTIVE EXPANSION | P6 (action) | Side project with clear scope | SCOPE EXPANSION |
+| 2 | CEO | Cage-only uniqueness verification: MUST FIX | P1 (completeness) | Player could find valid-looking answer rejected by hidden rules | Ship without fix |
+| 3 | CEO | Ship web this week: AUTO-APPROVE | P6 (action) | Web is complete, delaying gains nothing | Wait for Flutter |
+| 4 | CEO | GA4 + UTM tracking: AUTO-APPROVE | P1 (completeness) | Can't validate without measurement | Launch blind |
+| 5 | CEO | Sequential vs parallel Flutter: TASTE DECISION | — | Subagent says sequential; user chose parallel | Surfaced at gate |
+| 6 | CEO | PWA vs Flutter: TASTE DECISION | — | PWA = 2hr, Flutter = 5wk; iOS push works now | Surfaced at gate |
+| 7 | Design | First-time onboarding: AUTO-FIX | P1 (completeness) | First-time bounce risk without explanation | No onboarding |
+| 8 | Design | Replace alert()/confirm(): AUTO-FIX | P5 (explicit) | Native dialogs are jarring, no recovery | Keep alert() |
+| 9 | Design | Numpad disabled when no cell selected: AUTO-FIX | P5 (explicit) | Pressing keys does nothing = confusing | Active numpad |
+| 10 | Design | localStorage game state save: AUTO-FIX | P1 (completeness) | Losing progress on refresh = frustrating | No state save |
+| 11 | Design | Cage completion micro-animation: AUTO-FIX | P1 (completeness) | Flat emotion curve mid-puzzle | No animation |
+| 12 | Design | Difficulty progression nudge: AUTO-FIX | P2 (boil lakes) | No prompt to try harder levels | Static selection |
+| 13 | Design | Remove user-scalable=no: AUTO-FIX | P1 (completeness) | WCAG violation | Keep viewport lock |
+| 14 | Design | Add ARIA roles + labels: AUTO-FIX | P1 (completeness) | Screen readers can't navigate game | No ARIA |
+| 15 | Design | Color-blind safe feedback (✓/✗ icons): AUTO-FIX | P1 (completeness) | 8% of male users affected | Color-only |
+| 16 | Design | Focus styles + tabindex: AUTO-FIX | P1 (completeness) | Keyboard-only users blocked | No focus |
+| 17 | Design | Hide streak badge when 0: AUTO-FIX | P5 (explicit) | Meaningless noise for first-timers | Always visible |
+| 18 | Design | Brand color palette: TASTE DECISION | — | Default Tailwind vs custom palette | Surfaced at gate |
+| 19 | Eng | All unit tests: AUTO-APPROVE | P1 (completeness) | 0 tests exist, 10 gaps identified | Defer tests |
+| 20 | Eng | Code duplication: DEFER | P3 (pragmatic) | Bundler adds complexity for 1-file app | Add esbuild |
+
+### Cross-Phase Themes
+
+**Theme 1: Hidden Latin-Square Constraint** — CEO(CRITICAL, P1) + Eng(CRITICAL, Section 2). **Highest-confidence signal.**
+The solver enforces row/col uniqueness that the player doesn't know about. Every generated puzzle must be verified to have a unique solution using ONLY cage arithmetic constraints. This is a game-breaking bug if not fixed.
+→ **Must fix before web launch.** Write a cage-only solver (no row/col pruning) and run it during puzzle generation.
+
+**Theme 2: Ship Speed** — CEO(P5 partial, subagent) + Eng(confirmed, deployment risk = 0). **High-confidence signal.**
+The web prototype is complete. Every day of delay is a day someone else could launch a Wordle-for-math. Static HTML on Vercel = zero deployment risk. The cage-only verification fix is the only blocker.
+→ **Ship immediately after cage-only fix.**
+
+**Theme 3: Accessibility Debt** — Design(3/10, 4 critical findings) + Eng(error path handling). **Medium-confidence signal.**
+No ARIA, no focus styles, color-only feedback, non-focusable cells. This blocks a segment of users and creates legal exposure. Not a launch blocker for a side project, but should be addressed in the first post-launch sprint.
+→ **Fix in week 1-2 post-launch.**
 
 ## /autoplan Review — 2026-03-26
 
@@ -587,13 +959,13 @@ ENG DUAL VOICES [subagent-only]:
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
-| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | ⚠️ 2 unresolved taste decisions | Web-first pivot accepted; Remove Ads deferred |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 2 | ⚠️ 1 critical + 2 taste decisions | Cage-only uniqueness (CRITICAL); Sequential/PWA (taste) |
 | Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | Codex unavailable [subagent-only] |
-| Design Review | `/plan-design-review` | UI/UX gaps | 2 | ✅ clean | score: 3/10→8/10; 2단 데스크탑 레이아웃, 3단 브레이크포인트 확정 |
-| Eng Review | `/plan-eng-review` | Architecture & tests | 1 | ✅ clean | 12 test gaps identified, all auto-decided |
+| Design Review | `/plan-design-review` | UI/UX gaps | 3 | ⚠️ 12 auto-fixes + 1 taste | Score: 39/70; a11y=3/10 (4 critical); brand palette (taste) |
+| Eng Review | `/plan-eng-review` | Architecture & tests | 2 | ⚠️ 1 critical | Cage-only uniqueness; 10 test gaps; code duplication |
 
-**VERDICT:** APPROVED — 웹 UI 반응형 스펙 추가 완료. 구현 준비됨.
-Key risk: DAU acquisition unvalidated — web launch in 2 weeks is the test.
+**VERDICT:** CONDITIONAL APPROVAL — cage-only uniqueness verification must be implemented before web launch. All other fixes are post-launch sprint items.
+Key blocker: Hidden Latin-square constraint could reject valid player answers.
 
 ### TODOS.md Updates (auto-deferred)
 

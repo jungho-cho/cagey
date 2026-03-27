@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background: rounded square -->
+  <rect width="32" height="32" rx="6" fill="#2563eb"/>
+
+  <!-- 2x2 cage grid lines -->
+  <line x1="16" y1="5" x2="16" y2="27" stroke="#fff" stroke-width="1.5" stroke-opacity="0.35"/>
+  <line x1="5" y1="16" x2="27" y2="16" stroke="#fff" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Cage border (L-shaped cage top-left + top-right) -->
+  <path d="M5 5h22v11h-11v11h-11z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
+  <!-- Inner cage border (bottom-right) -->
+  <path d="M16 16h11v11h-11z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
+
+  <!-- Numbers in cells -->
+  <text x="10.5" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="9" fill="#fff">3</text>
+  <text x="21.5" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="9" fill="#fff">+</text>
+  <text x="10.5" y="24" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="9" fill="#fff">4</text>
+  <text x="21.5" y="24" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="9" fill="#fff">2</text>
+
+  <!-- Small cage hint label top-left -->
+  <text x="6.5" y="9" font-family="system-ui,sans-serif" font-weight="600" font-size="5" fill="#93c5fd">7+</text>
+</svg>

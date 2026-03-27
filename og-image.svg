@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- 4x4 grid illustration (centered-left) -->
+  <g transform="translate(120, 115)">
+    <!-- Grid cells -->
+    <rect x="0" y="0" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="105" y="0" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="0" y="105" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="105" y="105" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="210" y="0" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="315" y="0" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="210" y="105" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="315" y="105" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+
+    <!-- Cage borders (L-shaped cage top-left 2 cells) -->
+    <rect x="-2" y="-2" width="209" height="104" rx="10" fill="none" stroke="#60a5fa" stroke-width="3"/>
+    <!-- Cage bottom-left -->
+    <rect x="-2" y="103" width="104" height="106" rx="10" fill="none" stroke="#f59e0b" stroke-width="3"/>
+    <!-- Cage bottom-right + top-right block -->
+    <rect x="103" y="103" width="104" height="106" rx="10" fill="none" stroke="#34d399" stroke-width="3"/>
+    <rect x="208" y="-2" width="209" height="104" rx="10" fill="none" stroke="#f472b6" stroke-width="3"/>
+    <rect x="208" y="103" width="209" height="106" rx="10" fill="none" stroke="#a78bfa" stroke-width="3"/>
+
+    <!-- Cage hint labels -->
+    <text x="8" y="22" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#60a5fa">7+</text>
+    <text x="8" y="127" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#f59e0b">3×</text>
+    <text x="113" y="127" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#34d399">6+</text>
+    <text x="218" y="22" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#f472b6">5+</text>
+    <text x="218" y="127" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#a78bfa">8×</text>
+
+    <!-- Numbers in cells -->
+    <text x="50" y="68" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">3</text>
+    <text x="155" y="68" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">4</text>
+    <text x="50" y="173" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff" fill-opacity="0.3">?</text>
+    <text x="155" y="173" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">2</text>
+    <text x="260" y="68" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">1</text>
+    <text x="365" y="68" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff" fill-opacity="0.3">?</text>
+    <text x="260" y="173" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">4</text>
+    <text x="365" y="173" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">2</text>
+
+    <!-- Row 3 and 4 -->
+    <rect x="0" y="210" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="105" y="210" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="210" y="210" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="315" y="210" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="0" y="315" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="105" y="315" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="210" y="315" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <rect x="315" y="315" width="100" height="100" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5"/>
+
+    <!-- More cage borders row 3-4 -->
+    <rect x="-2" y="208" width="209" height="106" rx="10" fill="none" stroke="#fb923c" stroke-width="3"/>
+    <rect x="208" y="208" width="209" height="106" rx="10" fill="none" stroke="#38bdf8" stroke-width="3"/>
+    <rect x="-2" y="313" width="104" height="106" rx="10" fill="none" stroke="#4ade80" stroke-width="3"/>
+    <rect x="103" y="313" width="314" height="106" rx="10" fill="none" stroke="#e879f9" stroke-width="3"/>
+
+    <text x="8" y="232" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#fb923c">5+</text>
+    <text x="218" y="232" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#38bdf8">6×</text>
+    <text x="8" y="337" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#4ade80">4+</text>
+    <text x="113" y="337" font-family="system-ui,sans-serif" font-weight="600" font-size="18" fill="#e879f9">9+</text>
+
+    <text x="50" y="278" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff" fill-opacity="0.3">?</text>
+    <text x="155" y="278" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">1</text>
+    <text x="260" y="278" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">3</text>
+    <text x="365" y="278" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff" fill-opacity="0.3">?</text>
+    <text x="50" y="383" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff" fill-opacity="0.3">?</text>
+    <text x="155" y="383" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">3</text>
+    <text x="260" y="383" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff">2</text>
+    <text x="365" y="383" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="42" fill="#ffffff" fill-opacity="0.3">?</text>
+  </g>
+
+  <!-- Text (right side) -->
+  <text x="640" y="220" font-family="system-ui,sans-serif" font-weight="800" font-size="72" fill="#ffffff" letter-spacing="6">CAGEY</text>
+  <text x="640" y="280" font-family="system-ui,sans-serif" font-weight="400" font-size="28" fill="#94a3b8">Daily cage math puzzle</text>
+  <text x="640" y="340" font-family="system-ui,sans-serif" font-weight="500" font-size="22" fill="#60a5fa">No sudoku rules. Just + and x.</text>
+  <text x="640" y="400" font-family="system-ui,sans-serif" font-weight="500" font-size="22" fill="#f59e0b">New puzzle every day.</text>
+
+  <!-- Play button -->
+  <rect x="640" y="440" width="200" height="56" rx="28" fill="#2563eb"/>
+  <text x="740" y="475" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="22" fill="#ffffff">Play Free</text>
+</svg>

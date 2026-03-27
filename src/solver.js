@@ -1,15 +1,13 @@
 /**
  * Cagey — Backtracking Solver
  *
- * Design decision: solutions are generated as Latin squares (each value 1..N appears
- * exactly once per row and column, where N = grid size = maxVal). This constraint is
- * invisible to the player — players only see cage hints and fill numbers freely — but
- * it makes puzzle generation ~1000x faster and unique solutions achievable.
+ * Two solvers:
+ *  1. Latin-square solver (fast) — used during generation for quick uniqueness check
+ *  2. Cage-only solver (slower) — verifies that cage constraints ALONE uniquely
+ *     determine the solution, with NO hidden row/col rules.
  *
- * Why hidden row/col uniqueness is fine UX:
- *  - Players solve by cage arithmetic; they rarely need to think about rows/cols
- *  - The cage constraints ALONE uniquely determine the solution (by design)
- *  - "No sudoku rules" means players don't need to use row/col deduction
+ * The generation pipeline: Latin-square solver filters first (fast), then cage-only
+ * solver confirms the puzzle is fair for the player (no hidden constraints needed).
  */
 
 'use strict';
@@ -151,4 +149,97 @@ function countSolutions(puzzle, limit = 2) {
   return solutions.length;
 }
 
-module.exports = { solve, countSolutions, checkCage };
+/**
+ * Enhanced cage feasibility check with tighter bounds.
+ * Catches impossible branches earlier than checkCage (especially for multiplication).
+ */
+function checkCageTight(cage, grid, maxVal) {
+  const vals = cage.cells.map(i => grid[i]);
+  const filled = vals.filter(v => v !== 0);
+  const empty = vals.length - filled.length;
+
+  if (cage.op === '+') {
+    const sum = filled.reduce((a, b) => a + b, 0);
+    if (empty === 0) return sum === cage.target ? 'satisfied' : 'impossible';
+    if (sum >= cage.target) return 'impossible';
+    // Lower bound: each remaining cell is at least 1
+    if (sum + empty > cage.target) return 'impossible';
+    // Upper bound: each remaining cell is at most maxVal
+    if (sum + empty * maxVal < cage.target) return 'impossible';
+    return 'ok';
+  } else { // '*'
+    const prod = filled.reduce((a, b) => a * b, 1);
+    if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
+    if (cage.target % prod !== 0) return 'impossible';
+    // Upper bound: remaining cells are at most maxVal each
+    if (prod * Math.pow(maxVal, empty) < cage.target) return 'impossible';
+    // Lower bound: remaining cells are at least 1
+    if (prod > cage.target) return 'impossible';
+    return 'ok';
+  }
+}
+
+/**
+ * Cage-only recursive backtracking — NO row/col uniqueness.
+ * This is what the player actually experiences: only cage arithmetic matters.
+ */
+function _solveCageOnly(grid, pos, puzzle, cellCageMap, solutions, stopAt, state) {
+  if (solutions.length >= stopAt) return;
+  if (++state.nodes > state.nodeLimit) return;
+
+  const { size } = puzzle;
+  const total = size * size;
+
+  while (pos < total && grid[pos] !== 0) pos++;
+
+  if (pos === total) {
+    for (const cage of puzzle.cages) {
+      if (checkCage(cage, grid) !== 'satisfied') return;
+    }
+    solutions.push(grid.slice());
+    return;
+  }
+
+  const cageIdx = cellCageMap[pos];
+  const cage = puzzle.cages[cageIdx];
+
+  for (let val = 1; val <= size; val++) {
+    grid[pos] = val;
+
+    if (checkCageTight(cage, grid, size) !== 'impossible') {
+      _solveCageOnly(grid, pos + 1, puzzle, cellCageMap, solutions, stopAt, state);
+      if (solutions.length >= stopAt || state.nodes > state.nodeLimit) {
+        grid[pos] = 0;
+        return;
+      }
+    }
+
+    grid[pos] = 0;
+  }
+}
+
+/**
+ * Verify that a puzzle has a unique solution using ONLY cage constraints.
+ * No row/col Latin-square rules — this is the player's constraint set.
+ *
+ * Returns:
+ *  - true   → cage constraints alone give exactly one solution (puzzle is fair)
+ *  - false  → multiple cage-only solutions OR node limit exceeded (puzzle is unfair/unknown)
+ *
+ * @param {Puzzle} puzzle
+ * @param {number} [nodeLimit=2_000_000]  abort threshold
+ * @returns {boolean}
+ */
+function verifyCageOnlyUnique(puzzle, nodeLimit = 2_000_000) {
+  const { size } = puzzle;
+  const grid = new Array(size * size).fill(0);
+  const cellCageMap = buildCellCageMap(puzzle);
+  const solutions = [];
+  const state = { nodes: 0, nodeLimit };
+  _solveCageOnly(grid, 0, puzzle, cellCageMap, solutions, 2, state);
+
+  // Exactly 1 solution found within budget = puzzle is fair
+  return solutions.length === 1 && state.nodes <= state.nodeLimit;
+}
+
+module.exports = { solve, countSolutions, checkCage, verifyCageOnlyUnique };

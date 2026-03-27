@@ -3,7 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Cagey — Cage Puzzle</title>
+<title>Cagey — Free Daily Cage Puzzle Game</title>
+<meta name="description" content="A free daily math puzzle game. Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math. New puzzle every day.">
+<meta name="keywords" content="cage puzzle, math puzzle, daily puzzle, kenken alternative, logic game, free puzzle game, number puzzle">
+<link rel="canonical" href="https://cagey.app/">
+
+<!-- Open Graph (Facebook, Discord, Slack, iMessage) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cagey — Free Daily Cage Puzzle">
+<meta property="og:description" content="Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math. New puzzle every day.">
+<meta property="og:url" content="https://cagey.app/">
+<meta property="og:image" content="https://cagey.app/og-image.png">
+<meta property="og:site_name" content="Cagey">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cagey — Free Daily Cage Puzzle">
+<meta name="twitter:description" content="Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math.">
+<meta name="twitter:image" content="https://cagey.app/og-image.png">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -373,6 +393,64 @@ function solve(puzzle, nodeLimit) {
   if (solutions.length === 0) return null;
   if (solutions.length === 1) return solutions[0];
   return false;
+}
+
+/* ── Cage-Only Solver (no row/col rules — what the player sees) ── */
+function checkCageTight(cage, grid, maxVal) {
+  const vals = cage.cells.map(i => grid[i]);
+  const filled = vals.filter(v => v !== 0);
+  const empty = vals.length - filled.length;
+  if (cage.op === '+') {
+    const sum = filled.reduce((a, b) => a + b, 0);
+    if (empty === 0) return sum === cage.target ? 'satisfied' : 'impossible';
+    if (sum >= cage.target) return 'impossible';
+    if (sum + empty > cage.target) return 'impossible';
+    if (sum + empty * maxVal < cage.target) return 'impossible';
+    return 'ok';
+  } else {
+    const prod = filled.reduce((a, b) => a * b, 1);
+    if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
+    if (cage.target % prod !== 0) return 'impossible';
+    if (prod * Math.pow(maxVal, empty) < cage.target) return 'impossible';
+    if (prod > cage.target) return 'impossible';
+    return 'ok';
+  }
+}
+
+function _solveCageOnly(grid, pos, puzzle, cellCageMap, solutions, stopAt, state) {
+  if (solutions.length >= stopAt) return;
+  if (++state.nodes > state.nodeLimit) return;
+  const { size } = puzzle;
+  const total = size * size;
+  while (pos < total && grid[pos] !== 0) pos++;
+  if (pos === total) {
+    for (const cage of puzzle.cages) {
+      if (checkCage(cage, grid) !== 'satisfied') return;
+    }
+    solutions.push(grid.slice());
+    return;
+  }
+  const cage = puzzle.cages[cellCageMap[pos]];
+  for (let val = 1; val <= size; val++) {
+    grid[pos] = val;
+    if (checkCageTight(cage, grid, size) !== 'impossible') {
+      _solveCageOnly(grid, pos + 1, puzzle, cellCageMap, solutions, stopAt, state);
+      if (solutions.length >= stopAt || state.nodes > state.nodeLimit) {
+        grid[pos] = 0; return;
+      }
+    }
+    grid[pos] = 0;
+  }
+}
+
+function verifyCageOnlyUnique(puzzle, nodeLimit) {
+  const { size } = puzzle;
+  const grid = new Array(size * size).fill(0);
+  const cellCageMap = buildCellCageMap(puzzle);
+  const solutions = [];
+  const state = { nodes: 0, nodeLimit: nodeLimit || 2000000 };
+  _solveCageOnly(grid, 0, puzzle, cellCageMap, solutions, 2, state);
+  return solutions.length === 1 && state.nodes <= state.nodeLimit;
 }
 
 /* ─────────────────────────────────────────
@@ -816,14 +894,31 @@ function handleUndo() {
 ───────────────────────────────────────── */
 const MAX_HINTS = 3;
 
+function solveFromCurrentGrid(puzzle) {
+  // Find a cage-valid completion starting from the player's current grid state.
+  // Uses cage-only solver (no row/col rules) so the hint is compatible with
+  // any valid solution the player might be building toward.
+  const { size } = puzzle;
+  const total = size * size;
+  const testGrid = grid.slice(); // copy player's current grid
+  const cellCageMap = buildCellCageMap(puzzle);
+  const solutions = [];
+  const state = { nodes: 0, nodeLimit: 1_000_000 };
+  _solveCageOnly(testGrid, 0, puzzle, cellCageMap, solutions, 1, state);
+  return solutions.length > 0 ? solutions[0] : currentPuzzle.solution;
+}
+
 function handleHint() {
   if (gameComplete || hintsUsed >= MAX_HINTS) return;
+
+  // Find a valid completion that's consistent with the player's current work
+  const hintSolution = solveFromCurrentGrid(currentPuzzle);
 
   // Find unfilled or wrong cells (not already hinted)
   const candidates = [];
   const total = currentPuzzle.size * currentPuzzle.size;
   for (let i = 0; i < total; i++) {
-    if (!hintMask[i] && (grid[i] === 0 || grid[i] !== currentPuzzle.solution[i])) {
+    if (!hintMask[i] && (grid[i] === 0 || grid[i] !== hintSolution[i])) {
       candidates.push(i);
     }
   }
@@ -831,7 +926,7 @@ function handleHint() {
 
   // Pick a random candidate
   const idx = candidates[(Math.random() * candidates.length) | 0];
-  grid[idx] = currentPuzzle.solution[idx];
+  grid[idx] = hintSolution[idx];
   hintMask[idx] = true;
   hintsUsed++;
 

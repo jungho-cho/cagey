@@ -222,8 +222,9 @@ function generate(difficulty, seed, budgetMs) {
     const cages = buildCages(cellGroups, solution, cfg.ops, rng);
     const puzzle = { size: cfg.size, cages };
 
-    // Node limit: abort pathological cases early; retry with next seed.
-    // 8x8 unique puzzles typically need < 200k nodes.
+    // Latin-square uniqueness check (fast). The player's game completion
+    // uses cage arithmetic only, so multiple cage-valid solutions may exist.
+    // Hints use solveCageOnly to stay compatible with the player's current grid.
     const NODE_LIMIT = 500_000;
     const result = solve(puzzle, NODE_LIMIT);
     if (result !== null && result !== false) {
