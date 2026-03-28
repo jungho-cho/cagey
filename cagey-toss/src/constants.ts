@@ -56,10 +56,10 @@ export const MOCK_PUZZLE = {
 
 export const ACHIEVEMENT_BADGES = [
   { id: 'first_clear', icon: '🏆', label: '첫 클리어' },
-  { id: 'streak_3', icon: '🔥', label: '3일 연속' },
-  { id: 'streak_7', icon: '💎', label: '7일 연속' },
-  { id: 'speed_easy', icon: '⚡', label: '쉬움 1분 이내' },
-  { id: 'all_easy', icon: '🎯', label: '쉬움 마스터' },
-  { id: 'no_hint', icon: '🧠', label: '힌트 없이 클리어' },
-  { id: 'daily_30', icon: '👑', label: '30일 도전' },
+  { id: 'easy_master', icon: '🎯', label: '쉬움 마스터' },
+  { id: 'medium_master', icon: '⭐', label: '보통 마스터' },
+  { id: 'hard_master', icon: '💎', label: '어려움 마스터' },
+  { id: 'expert_master', icon: '👑', label: '전문가 마스터' },
+  { id: 'streak_7', icon: '🔥', label: '7일 연속' },
+  { id: 'plays_50', icon: '🚀', label: '50판 돌파' },
 ];

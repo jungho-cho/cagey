@@ -53,6 +53,7 @@ export async function submitScore(
   try {
     const result = await submitGameCenterLeaderBoardScore({
       score: String(score),
+      leaderboardId,
     });
 
     if (!result) {

@@ -102,7 +102,7 @@ type StatsData = Record<Difficulty, DifficultyStats>;
 
 const DEFAULT_DIFFICULTY_STATS: DifficultyStats = {
   clears: 0,
-  bestTime: Infinity,
+  bestTime: Number.MAX_SAFE_INTEGER,
   avgTime: 0,
   totalTime: 0,
 };
@@ -138,7 +138,7 @@ export async function recordSolve(
   ds.clears += 1;
   ds.totalTime += timeSeconds;
   ds.avgTime = ds.totalTime / ds.clears;
-  if (timeSeconds < ds.bestTime || ds.bestTime === Infinity) {
+  if (timeSeconds < ds.bestTime) {
     ds.bestTime = timeSeconds;
   }
   await setJSON(KEYS.STATS, stats);
@@ -243,7 +243,31 @@ function hintKeyForDate(date: string): string {
 
 export async function getHintCount(): Promise<number> {
   const today = getKSTDateString();
+  await cleanupOldHintKeys(today);
   return getJSON(hintKeyForDate(today), 0);
+}
+
+async function cleanupOldHintKeys(todayStr: string): Promise<void> {
+  try {
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    const allKeys: string[] = await AsyncStorage.getAllKeys();
+    const hintKeys = allKeys.filter(
+      (k: string) => k.startsWith(HINT_KEY_PREFIX) && k !== hintKeyForDate(todayStr),
+    );
+    // Keep last 7 days, remove older
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const oldKeys = hintKeys.filter((k: string) => {
+      const dateStr = k.replace(HINT_KEY_PREFIX, '');
+      return dateStr < cutoffStr;
+    });
+    if (oldKeys.length > 0) {
+      await AsyncStorage.multiRemove(oldKeys);
+    }
+  } catch {
+    // Non-critical cleanup, ignore errors
+  }
 }
 
 export async function incrementHintCount(): Promise<number> {

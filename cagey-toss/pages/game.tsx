@@ -7,7 +7,11 @@ import { createRoute, useNavigation } from '@granite-js/react-native';
 import { Grid } from '../src/components/Grid';
 import { NumPad } from '../src/components/NumPad';
 import { COLORS, GRID_SIZES, DIFFICULTY_NAMES, MOCK_PUZZLE } from '../src/constants';
-import type { Puzzle, CellDisplayStatus } from '../src/engine/types';
+import puzzleBundle from '../src/data/puzzleBundle.json';
+import { getDailyPuzzleIndex } from '../src/engine/daily';
+import * as storage from '../src/services/storage';
+import * as leaderboard from '../src/services/leaderboard';
+import type { Puzzle, PuzzleWithSolution, CellDisplayStatus, Difficulty } from '../src/engine/types';
 
 export const Route = createRoute('/game', {
   validateParams: (params) => params as { difficulty: string; isDaily: string },
@@ -58,8 +62,17 @@ function GameScreen() {
   const isDaily = params.isDaily === 'true';
   const gridSize = GRID_SIZES[difficulty] || 4;
 
-  // Use mock puzzle (in production, load from bundle)
-  const puzzle: Puzzle = useMemo(() => MOCK_PUZZLE, []);
+  // Load puzzle from bundle based on difficulty and daily mode
+  const puzzle: PuzzleWithSolution = useMemo(() => {
+    const bundle = (puzzleBundle as Record<string, PuzzleWithSolution[]>)[difficulty];
+    if (!bundle || bundle.length === 0) return MOCK_PUZZLE;
+    if (isDaily) {
+      const idx = getDailyPuzzleIndex(bundle.length);
+      return bundle[idx];
+    }
+    const idx = Math.floor(Math.random() * bundle.length);
+    return bundle[idx];
+  }, [difficulty, isDaily]);
   const cellCageMap = useMemo(() => buildCellCageMap(puzzle), [puzzle]);
 
   const [grid, setGrid] = useState<number[]>(() => new Array(puzzle.size * puzzle.size).fill(0));
@@ -67,13 +80,18 @@ function GameScreen() {
   const [hints, setHints] = useState(3);
   const [undoStack, setUndoStack] = useState<Array<{ idx: number; prev: number }>>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const elapsedSecondsRef = useRef(0);
   const [isComplete, setIsComplete] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Timer
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setElapsedSeconds((s) => s + 1);
+      setElapsedSeconds((s) => {
+        const next = s + 1;
+        elapsedSecondsRef.current = next;
+        return next;
+      });
     }, 1000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -116,6 +134,26 @@ function GameScreen() {
     [puzzle],
   );
 
+  const handleComplete = useCallback(async () => {
+    const seconds = elapsedSecondsRef.current;
+    try {
+      await storage.recordSolve(difficulty as Difficulty, seconds);
+      if (isDaily) {
+        await storage.updateStreak();
+      }
+      await leaderboard.submitScore(difficulty as Difficulty, seconds, isDaily);
+      const stats = await storage.getStats();
+      const streak = await storage.getStreak();
+      await storage.checkAndUnlockBadges(stats, streak);
+    } catch (err) {
+      console.warn('[game] post-completion error:', err);
+    }
+    navigation.navigate('/clear', {
+      time: String(seconds),
+      difficulty,
+    });
+  }, [difficulty, isDaily, navigation]);
+
   const handleNumber = useCallback(
     (n: number) => {
       if (selectedIndex == null || isComplete) return;
@@ -125,18 +163,15 @@ function GameScreen() {
         next[selectedIndex] = n;
         if (checkCompletion(next)) {
           setIsComplete(true);
-          // Navigate to clear screen after short delay
+          // Record stats and navigate after short delay
           setTimeout(() => {
-            navigation.navigate('/clear', {
-              time: String(elapsedSeconds),
-              difficulty,
-            });
+            handleComplete();
           }, 600);
         }
         return next;
       });
     },
-    [selectedIndex, isComplete, checkCompletion, navigation, elapsedSeconds, difficulty],
+    [selectedIndex, isComplete, checkCompletion, handleComplete],
   );
 
   const handleBackspace = useCallback(() => {
@@ -150,20 +185,23 @@ function GameScreen() {
   }, [selectedIndex, isComplete]);
 
   const handleUndo = useCallback(() => {
-    if (undoStack.length === 0 || isComplete) return;
-    const last = undoStack[undoStack.length - 1];
-    setUndoStack((stack) => stack.slice(0, -1));
-    setGrid((prev) => {
-      const next = [...prev];
-      next[last.idx] = last.prev;
-      return next;
+    if (isComplete) return;
+    setUndoStack((stack) => {
+      if (stack.length === 0) return stack;
+      const last = stack[stack.length - 1];
+      setGrid((prev) => {
+        const next = [...prev];
+        next[last.idx] = last.prev;
+        return next;
+      });
+      return stack.slice(0, -1);
     });
-  }, [undoStack, isComplete]);
+  }, [isComplete]);
 
   const handleHint = useCallback(() => {
     if (hints <= 0 || isComplete) return;
     // Find first empty cell and reveal from solution
-    const solution = MOCK_PUZZLE.solution;
+    const solution = puzzle.solution;
     const emptyIdx = grid.findIndex((v) => v === 0);
     if (emptyIdx === -1) return;
 
@@ -174,16 +212,13 @@ function GameScreen() {
       if (checkCompletion(next)) {
         setIsComplete(true);
         setTimeout(() => {
-          navigation.navigate('/clear', {
-            time: String(elapsedSeconds),
-            difficulty,
-          });
+          handleComplete();
         }, 600);
       }
       return next;
     });
     setSelectedIndex(emptyIdx);
-  }, [hints, isComplete, grid, checkCompletion, navigation, elapsedSeconds, difficulty]);
+  }, [hints, isComplete, grid, puzzle, checkCompletion, handleComplete]);
 
   const handleBack = () => {
     if (navigation.canGoBack()) {

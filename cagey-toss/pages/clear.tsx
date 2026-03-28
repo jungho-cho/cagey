@@ -6,6 +6,7 @@ import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { createRoute, useNavigation } from '@granite-js/react-native';
 import { CommonActions } from '@granite-js/native/@react-navigation/native';
 import { COLORS, DIFFICULTY_NAMES } from '../src/constants';
+import { openLeaderboard } from '../src/services/leaderboard';
 
 export const Route = createRoute('/clear', {
   validateParams: (params) => params as { time: string; difficulty: string },
@@ -71,7 +72,7 @@ function ClearScreen() {
           <Pressable style={styles.primaryButton} onPress={nextPuzzle}>
             <Text style={styles.primaryButtonText}>다음 퍼즐</Text>
           </Pressable>
-          <Pressable style={styles.outlineButton} onPress={() => {}}>
+          <Pressable style={styles.outlineButton} onPress={() => openLeaderboard()}>
             <Text style={styles.outlineButtonText}>리더보드 보기</Text>
           </Pressable>
           <Pressable style={styles.textButton} onPress={goHome}>

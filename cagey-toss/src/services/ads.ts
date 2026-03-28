@@ -36,16 +36,30 @@ export function loadInterstitialAd(): Promise<void> {
       return;
     }
 
+    let settled = false;
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject(new Error('[ads] interstitial load timed out after 15s'));
+      }
+    }, 15000);
+
     loadFullScreenAd({
       options: { adGroupId: INTERSTITIAL_AD_GROUP_ID },
       onEvent: (event) => {
-        if (event.type === 'loaded') {
+        if (event.type === 'loaded' && !settled) {
+          settled = true;
+          clearTimeout(timeout);
           resolve();
         }
       },
       onError: (err) => {
-        console.warn('[ads] interstitial load failed:', err);
-        reject(err);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+          console.warn('[ads] interstitial load failed:', err);
+          reject(err);
+        }
       },
     });
   });
@@ -89,16 +103,30 @@ export function loadRewardedAd(): Promise<void> {
       return;
     }
 
+    let settled = false;
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject(new Error('[ads] rewarded load timed out after 15s'));
+      }
+    }, 15000);
+
     loadFullScreenAd({
       options: { adGroupId: REWARDED_AD_GROUP_ID },
       onEvent: (event) => {
-        if (event.type === 'loaded') {
+        if (event.type === 'loaded' && !settled) {
+          settled = true;
+          clearTimeout(timeout);
           resolve();
         }
       },
       onError: (err) => {
-        console.warn('[ads] rewarded load failed:', err);
-        reject(err);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+          console.warn('[ads] rewarded load failed:', err);
+          reject(err);
+        }
       },
     });
   });

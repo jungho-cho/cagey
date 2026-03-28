@@ -5,6 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
 import { createRoute, useNavigation } from '@granite-js/react-native';
 import { COLORS, DIFFICULTY_NAMES, DIFFICULTY_KEYS } from '../src/constants';
+import { getStreak } from '../src/services/storage';
+import { getDailyCountdown } from '../src/engine/daily';
+import { openLeaderboard } from '../src/services/leaderboard';
 
 export const Route = createRoute('/', {
   validateParams: (params) => params,
@@ -13,21 +16,24 @@ export const Route = createRoute('/', {
 
 function HomeScreen() {
   const navigation = useNavigation();
-  const [streak, setStreak] = useState(3);
+  const [streak, setStreak] = useState(0);
   const [countdown, setCountdown] = useState('');
 
+  // Load streak from storage on mount
+  useEffect(() => {
+    getStreak().then((s) => setStreak(s.current));
+  }, []);
+
+  // Countdown using KST-based daily countdown
   useEffect(() => {
     const updateCountdown = () => {
+      const { hours, minutes } = getDailyCountdown();
       const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      const diff = tomorrow.getTime() - now.getTime();
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
+      const kstMs = now.getTime() + 9 * 60 * 60 * 1000;
+      const kst = new Date(kstMs);
+      const secondsLeft = 59 - kst.getUTCSeconds();
       setCountdown(
-        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`,
+        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secondsLeft).padStart(2, '0')}`,
       );
     };
     updateCountdown();
@@ -98,7 +104,7 @@ function HomeScreen() {
         >
           <Text style={styles.secondaryButtonText}>통계</Text>
         </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={() => {}}>
+        <Pressable style={styles.secondaryButton} onPress={() => openLeaderboard()}>
           <Text style={styles.secondaryButtonText}>리더보드</Text>
         </Pressable>
       </View>

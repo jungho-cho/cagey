@@ -3,7 +3,7 @@
  * Renders NxN puzzle grid with cage borders, labels, and status colors.
  */
 import React, { useMemo } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Cell } from './Cell';
 import { COLORS } from '../constants';
 import type { Cage, CellDisplayStatus } from '../engine/types';
@@ -19,7 +19,6 @@ interface GridProps {
 }
 
 const GRID_PADDING = 16;
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 function GridComponent({
   size,
@@ -30,7 +29,8 @@ function GridComponent({
   getCellStatus,
   onCellPress,
 }: GridProps) {
-  const cellSize = Math.floor((SCREEN_WIDTH - GRID_PADDING * 2 - 4) / size);
+  const { width: screenWidth } = useWindowDimensions();
+  const cellSize = Math.floor((screenWidth - GRID_PADDING * 2 - 4) / size);
 
   // Pre-compute cage labels: only show on the first cell of each cage
   const cageLabels = useMemo(() => {
