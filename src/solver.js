@@ -32,10 +32,22 @@ function checkCage(cage, grid) {
     if (empty === 0) return sum === cage.target ? 'satisfied' : 'impossible';
     if (sum >= cage.target) return 'impossible'; // partial sum already ≥ target
     return 'ok';
-  } else { // '*'
+  } else if (cage.op === '*') {
     const prod = filled.reduce((a, b) => a * b, 1);
     if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
     if (cage.target % prod !== 0) return 'impossible'; // partial product doesn't divide target
+    return 'ok';
+  } else if (cage.op === '-') {
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) return Math.abs(filled[0] - filled[1]) === cage.target ? 'satisfied' : 'impossible';
+    return 'ok';
+  } else { // '/'
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) {
+      const mx = Math.max(filled[0], filled[1]);
+      const mn = Math.min(filled[0], filled[1]);
+      return (mn !== 0 && mx / mn === cage.target && mx % mn === 0) ? 'satisfied' : 'impossible';
+    }
     return 'ok';
   }
 }
@@ -167,7 +179,7 @@ function checkCageTight(cage, grid, maxVal) {
     // Upper bound: each remaining cell is at most maxVal
     if (sum + empty * maxVal < cage.target) return 'impossible';
     return 'ok';
-  } else { // '*'
+  } else if (cage.op === '*') {
     const prod = filled.reduce((a, b) => a * b, 1);
     if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
     if (cage.target % prod !== 0) return 'impossible';
@@ -175,6 +187,28 @@ function checkCageTight(cage, grid, maxVal) {
     if (prod * Math.pow(maxVal, empty) < cage.target) return 'impossible';
     // Lower bound: remaining cells are at least 1
     if (prod > cage.target) return 'impossible';
+    return 'ok';
+  } else if (cage.op === '-') {
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) return Math.abs(filled[0] - filled[1]) === cage.target ? 'satisfied' : 'impossible';
+    if (filled.length === 1) {
+      const v = filled[0];
+      if (v + cage.target > maxVal && v - cage.target < 1) return 'impossible';
+    }
+    return 'ok';
+  } else { // '/'
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) {
+      const mx = Math.max(filled[0], filled[1]);
+      const mn = Math.min(filled[0], filled[1]);
+      return (mn !== 0 && mx / mn === cage.target && mx % mn === 0) ? 'satisfied' : 'impossible';
+    }
+    if (filled.length === 1) {
+      const v = filled[0];
+      const canDivide = cage.target !== 0 && v % cage.target === 0 && v / cage.target >= 1 && v / cage.target <= maxVal;
+      const canMultiply = v * cage.target <= maxVal;
+      if (!canDivide && !canMultiply) return 'impossible';
+    }
     return 'ok';
   }
 }

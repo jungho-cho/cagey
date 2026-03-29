@@ -40,10 +40,10 @@ function shuffle(arr, rng) {
 }
 
 const DIFFICULTY = {
-  easy:   { size: 4, ops: ['+'],       cageMin: 2, cageMax: 3 },
-  medium: { size: 5, ops: ['+', '*'],  cageMin: 2, cageMax: 3 },
-  hard:   { size: 6, ops: ['+', '*'],  cageMin: 2, cageMax: 4 },
-  expert: { size: 8, ops: ['+', '*'],  cageMin: 2, cageMax: 4 },
+  easy:   { size: 4, ops: ['+'],                   cageMin: 2, cageMax: 3 },
+  medium: { size: 5, ops: ['+', '*'],              cageMin: 2, cageMax: 3 },
+  hard:   { size: 6, ops: ['+', '*', '-', '/'],    cageMin: 2, cageMax: 4 },
+  expert: { size: 8, ops: ['+', '*', '-', '/'],    cageMin: 2, cageMax: 4 },
 };
 
 const MAX_RETRIES = 80;
@@ -177,10 +177,29 @@ function partitionIntoCages(size, cageMin, cageMax, rng) {
 function chooseCageOp(cells, solution, ops, rng) {
   if (ops.length === 1) return ops[0];
   const vals = cells.map(i => solution[i]);
+
+  // '-' and '/' only valid for 2-cell cages
+  const eligible = cells.length === 2
+    ? ops.filter(op => {
+        if (op === '/') {
+          const mx = Math.max(vals[0], vals[1]);
+          const mn = Math.min(vals[0], vals[1]);
+          return mn !== 0 && mx % mn === 0;
+        }
+        return true;
+      })
+    : ops.filter(op => op !== '-' && op !== '/');
+
+  if (eligible.length === 0) return '+';
+  if (eligible.length === 1) return eligible[0];
+
   const product = vals.reduce((a, b) => a * b, 1);
-  // Avoid unwieldy targets; cap at 500 for readability
-  if (product > 500) return '+';
-  return rng() < 0.4 ? '*' : '+';
+  if (eligible.includes('*') && product > 500) {
+    const filtered = eligible.filter(op => op !== '*');
+    if (filtered.length > 0) return filtered[Math.floor(rng() * filtered.length)];
+  }
+
+  return eligible[Math.floor(rng() * eligible.length)];
 }
 
 /**
@@ -190,9 +209,16 @@ function buildCages(cellGroups, solution, ops, rng) {
   return cellGroups.map(cells => {
     const op = chooseCageOp(cells, solution, ops, rng);
     const vals = cells.map(i => solution[i]);
-    const target = op === '+'
-      ? vals.reduce((a, b) => a + b, 0)
-      : vals.reduce((a, b) => a * b, 1);
+    let target;
+    if (op === '+') {
+      target = vals.reduce((a, b) => a + b, 0);
+    } else if (op === '*') {
+      target = vals.reduce((a, b) => a * b, 1);
+    } else if (op === '-') {
+      target = Math.abs(vals[0] - vals[1]);
+    } else { // '/'
+      target = Math.max(vals[0], vals[1]) / Math.min(vals[0], vals[1]);
+    }
     return { cells, op, target };
   });
 }

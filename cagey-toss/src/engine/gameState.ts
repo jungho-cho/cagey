@@ -6,7 +6,7 @@
  */
 
 import { checkCage } from './solver';
-import type { CellDisplayStatus, GameState, PuzzleWithSolution, UndoEntry } from './types';
+import type { CellDisplayStatus, GameState, PuzzleWithSolution, RowColViolation, UndoEntry } from './types';
 
 const UNDO_LIMIT = 50;
 
@@ -39,8 +39,84 @@ export function createGameState(puzzle: PuzzleWithSolution): GameState {
     return getCageStatus(ci);
   }
 
-  function isPuzzleComplete(): boolean {
-    return cages.every((_, ci) => getCageStatus(ci) === 'correct');
+  function checkRowUniqueness(row: number): boolean {
+    const seen = new Set<number>();
+    for (let c = 0; c < size; c++) {
+      const v = grid[row * size + c];
+      if (v === 0) continue;
+      if (seen.has(v)) return false;
+      seen.add(v);
+    }
+    return true;
+  }
+
+  function checkColUniqueness(col: number): boolean {
+    const seen = new Set<number>();
+    for (let r = 0; r < size; r++) {
+      const v = grid[r * size + col];
+      if (v === 0) continue;
+      if (seen.has(v)) return false;
+      seen.add(v);
+    }
+    return true;
+  }
+
+  function getRowColViolations(): RowColViolation[] {
+    const violations: RowColViolation[] = [];
+    // Check rows
+    for (let r = 0; r < size; r++) {
+      const counts = new Map<number, number[]>();
+      for (let c = 0; c < size; c++) {
+        const v = grid[r * size + c];
+        if (v === 0) continue;
+        if (!counts.has(v)) counts.set(v, []);
+        counts.get(v)!.push(c);
+      }
+      for (const [val, cols] of counts) {
+        if (cols.length > 1) {
+          for (const c of cols) {
+            violations.push({ row: r, col: c, value: val });
+          }
+        }
+      }
+    }
+    // Check columns
+    for (let c = 0; c < size; c++) {
+      const counts = new Map<number, number[]>();
+      for (let r = 0; r < size; r++) {
+        const v = grid[r * size + c];
+        if (v === 0) continue;
+        if (!counts.has(v)) counts.set(v, []);
+        counts.get(v)!.push(r);
+      }
+      for (const [val, rows] of counts) {
+        if (rows.length > 1) {
+          for (const r of rows) {
+            // Avoid duplicates if already added from row check
+            if (!violations.some(v => v.row === r && v.col === c && v.value === val)) {
+              violations.push({ row: r, col: c, value: val });
+            }
+          }
+        }
+      }
+    }
+    return violations;
+  }
+
+  function isPuzzleComplete(options?: { rowUnique?: boolean; colUnique?: boolean }): boolean {
+    const allCagesCorrect = cages.every((_, ci) => getCageStatus(ci) === 'correct');
+    if (!allCagesCorrect) return false;
+    if (options?.rowUnique) {
+      for (let r = 0; r < size; r++) {
+        if (!checkRowUniqueness(r)) return false;
+      }
+    }
+    if (options?.colUnique) {
+      for (let c = 0; c < size; c++) {
+        if (!checkColUniqueness(c)) return false;
+      }
+    }
+    return true;
   }
 
   function setCellValue(idx: number, value: number): void {
@@ -70,6 +146,9 @@ export function createGameState(puzzle: PuzzleWithSolution): GameState {
     getCageStatus,
     getCellStatus,
     isPuzzleComplete,
+    checkRowUniqueness,
+    checkColUniqueness,
+    getRowColViolations,
     setCellValue,
     undo,
     getUndoDepth: () => undoStack.length,

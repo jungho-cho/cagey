@@ -32,11 +32,23 @@ export function checkCage(cage: Cage, grid: number[]): CageStatus {
     if (empty === 0) return sum === cage.target ? 'satisfied' : 'impossible';
     if (sum >= cage.target) return 'impossible';
     return 'ok';
-  } else {
-    // '*'
+  } else if (cage.op === '*') {
     const prod = filled.reduce((a, b) => a * b, 1);
     if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
     if (cage.target % prod !== 0) return 'impossible';
+    return 'ok';
+  } else if (cage.op === '-') {
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) return Math.abs(filled[0] - filled[1]) === cage.target ? 'satisfied' : 'impossible';
+    return 'ok';
+  } else {
+    // '/'
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) {
+      const mx = Math.max(filled[0], filled[1]);
+      const mn = Math.min(filled[0], filled[1]);
+      return (mn !== 0 && mx / mn === cage.target && mx % mn === 0) ? 'satisfied' : 'impossible';
+    }
     return 'ok';
   }
 }
@@ -72,8 +84,7 @@ export function checkCageTight(cage: Cage, grid: number[], maxVal: number): Cage
     // Upper bound: each remaining cell is at most maxVal
     if (sum + empty * maxVal < cage.target) return 'impossible';
     return 'ok';
-  } else {
-    // '*'
+  } else if (cage.op === '*') {
     const prod = filled.reduce((a, b) => a * b, 1);
     if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
     if (cage.target % prod !== 0) return 'impossible';
@@ -81,6 +92,32 @@ export function checkCageTight(cage: Cage, grid: number[], maxVal: number): Cage
     if (prod * Math.pow(maxVal, empty) < cage.target) return 'impossible';
     // Lower bound: remaining cells are at least 1
     if (prod > cage.target) return 'impossible';
+    return 'ok';
+  } else if (cage.op === '-') {
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) return Math.abs(filled[0] - filled[1]) === cage.target ? 'satisfied' : 'impossible';
+    // With one value filled, check if any value 1..maxVal can satisfy |filled - x| = target
+    if (filled.length === 1) {
+      const v = filled[0];
+      if (v + cage.target > maxVal && v - cage.target < 1) return 'impossible';
+    }
+    return 'ok';
+  } else {
+    // '/'
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) {
+      const mx = Math.max(filled[0], filled[1]);
+      const mn = Math.min(filled[0], filled[1]);
+      return (mn !== 0 && mx / mn === cage.target && mx % mn === 0) ? 'satisfied' : 'impossible';
+    }
+    if (filled.length === 1) {
+      const v = filled[0];
+      // v / x = target => x = v / target (must be integer, 1..maxVal)
+      // x / v = target => x = v * target (must be <= maxVal)
+      const canDivide = cage.target !== 0 && v % cage.target === 0 && v / cage.target >= 1 && v / cage.target <= maxVal;
+      const canMultiply = v * cage.target <= maxVal;
+      if (!canDivide && !canMultiply) return 'impossible';
+    }
     return 'ok';
   }
 }
