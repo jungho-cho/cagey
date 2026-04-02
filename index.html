@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cagey — Free Daily Cage Puzzle Game</title>
-<meta name="description" content="A free daily math puzzle game. Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math. New puzzle every day.">
+<meta name="description" content="A free daily math puzzle game. Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive KenKen-style rules — row/col uniqueness at higher levels. New puzzle every day.">
 <meta name="keywords" content="cage puzzle, math puzzle, daily puzzle, kenken alternative, logic game, free puzzle game, number puzzle">
 <link rel="canonical" href="https://cagey.app/">
 
 <!-- Open Graph (Facebook, Discord, Slack, iMessage) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Cagey — Free Daily Cage Puzzle">
-<meta property="og:description" content="Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math. New puzzle every day.">
+<meta property="og:description" content="Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive rules — row/col uniqueness at higher levels. New puzzle every day.">
 <meta property="og:url" content="https://cagey.app/">
 <meta property="og:image" content="https://cagey.app/og-image.png">
 <meta property="og:site_name" content="Cagey">
@@ -19,7 +19,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cagey — Free Daily Cage Puzzle">
-<meta name="twitter:description" content="Fill cages with numbers so they add or multiply to the target. No sudoku rules — just math.">
+<meta name="twitter:description" content="Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive KenKen-style rules at higher levels.">
 <meta name="twitter:image" content="https://cagey.app/og-image.png">
 
 <!-- JSON-LD Structured Data -->
@@ -29,7 +29,7 @@
   "@type": "WebApplication",
   "name": "Cagey",
   "url": "https://cagey.app/",
-  "description": "A free daily math puzzle game. Fill cages with numbers so they add or multiply to the target. No sudoku rules, just math.",
+  "description": "A free daily math puzzle game. Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive KenKen-style rules at higher levels.",
   "applicationCategory": "GameApplication",
   "genre": "Puzzle",
   "operatingSystem": "Any",
@@ -335,11 +335,13 @@
 <div id="welcome" class="hidden">
   <div class="welcome-card">
     <div class="welcome-logo">CAGEY</div>
-    <div class="welcome-tagline">A daily cage math puzzle.<br>No sudoku rules — just + and &times;.</div>
+    <div class="welcome-tagline">A daily cage math puzzle with<br>progressive KenKen-style rules.</div>
     <div class="welcome-rule">
       <b>How to play:</b><br>
-      Fill each cage so the numbers add up (or multiply) to the target shown in the corner.<br>
-      Use numbers 1 to N (grid size). That's it!
+      Fill each cage so the numbers combine (+, &times;, &minus;, &divide;) to hit the target.<br>
+      <b>Easy:</b> Just fill the cages!<br>
+      <b>Medium:</b> Numbers can't repeat in each row.<br>
+      <b>Hard/Expert:</b> Numbers can't repeat in rows or columns.
     </div>
     <div class="welcome-example">
       ┌─────┬─────┐<br>
@@ -454,10 +456,22 @@ function checkCage(cage, grid) {
     if (empty === 0) return sum === cage.target ? 'satisfied' : 'impossible';
     if (sum >= cage.target) return 'impossible';
     return 'ok';
-  } else {
+  } else if (cage.op === '*') {
     const prod = filled.reduce((a, b) => a * b, 1);
     if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
     if (cage.target % prod !== 0) return 'impossible';
+    return 'ok';
+  } else if (cage.op === '-') {
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) return Math.abs(filled[0] - filled[1]) === cage.target ? 'satisfied' : 'impossible';
+    return 'ok';
+  } else { // '/'
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) {
+      const mx = Math.max(filled[0], filled[1]);
+      const mn = Math.min(filled[0], filled[1]);
+      return (mn !== 0 && mx / mn === cage.target && mx % mn === 0) ? 'satisfied' : 'impossible';
+    }
     return 'ok';
   }
 }
@@ -525,12 +539,24 @@ function checkCageTight(cage, grid, maxVal) {
     if (sum + empty > cage.target) return 'impossible';
     if (sum + empty * maxVal < cage.target) return 'impossible';
     return 'ok';
-  } else {
+  } else if (cage.op === '*') {
     const prod = filled.reduce((a, b) => a * b, 1);
     if (empty === 0) return prod === cage.target ? 'satisfied' : 'impossible';
     if (cage.target % prod !== 0) return 'impossible';
     if (prod * Math.pow(maxVal, empty) < cage.target) return 'impossible';
     if (prod > cage.target) return 'impossible';
+    return 'ok';
+  } else if (cage.op === '-') {
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) return Math.abs(filled[0] - filled[1]) === cage.target ? 'satisfied' : 'impossible';
+    return 'ok';
+  } else { // '/'
+    if (vals.length !== 2) return 'impossible';
+    if (empty === 0) {
+      const mx = Math.max(filled[0], filled[1]);
+      const mn = Math.min(filled[0], filled[1]);
+      return (mn !== 0 && mx / mn === cage.target && mx % mn === 0) ? 'satisfied' : 'impossible';
+    }
     return 'ok';
   }
 }
@@ -575,10 +601,10 @@ function verifyCageOnlyUnique(puzzle, nodeLimit) {
    GENERATOR
 ───────────────────────────────────────── */
 const DIFFICULTY = {
-  easy:   { size: 4, ops: ['+'],       cageMin: 2, cageMax: 3, label: 'Easy',   gridLabel: '4×4' },
-  medium: { size: 5, ops: ['+', '*'],  cageMin: 2, cageMax: 3, label: 'Medium', gridLabel: '5×5' },
-  hard:   { size: 6, ops: ['+', '*'],  cageMin: 2, cageMax: 4, label: 'Hard',   gridLabel: '6×6' },
-  expert: { size: 8, ops: ['+', '*'],  cageMin: 2, cageMax: 4, label: 'Expert', gridLabel: '8×8' },
+  easy:   { size: 4, ops: ['+'],                cageMin: 2, cageMax: 3, label: 'Easy',   gridLabel: '4×4', rowUnique: false, colUnique: false },
+  medium: { size: 5, ops: ['+', '*'],           cageMin: 2, cageMax: 3, label: 'Medium', gridLabel: '5×5', rowUnique: true,  colUnique: false },
+  hard:   { size: 6, ops: ['+', '*', '-', '/'], cageMin: 2, cageMax: 4, label: 'Hard',   gridLabel: '6×6', rowUnique: true,  colUnique: true },
+  expert: { size: 8, ops: ['+', '*', '-', '/'], cageMin: 2, cageMax: 4, label: 'Expert', gridLabel: '8×8', rowUnique: true,  colUnique: true },
 };
 
 function generateLatinSquare(size, rng) {
@@ -666,9 +692,23 @@ function generate(difficulty, seed) {
     const cellGroups = partitionIntoCages(cfg.size, cfg.cageMin, cfg.cageMax, rng);
     const cages = cellGroups.map(cells => {
       const vals = cells.map(i => solution[i]);
+      // Filter eligible ops: - and / only for 2-cell cages
+      let eligible = cells.length === 2
+        ? cfg.ops.filter(op => {
+            if (op === '/') { const mx = Math.max(vals[0], vals[1]); const mn = Math.min(vals[0], vals[1]); return mn !== 0 && mx % mn === 0; }
+            return true;
+          })
+        : cfg.ops.filter(op => op !== '-' && op !== '/');
+      if (eligible.length === 0) eligible = ['+'];
       const prod = vals.reduce((a, b) => a * b, 1);
-      const op = cfg.ops.length > 1 && prod <= 500 && rng() < 0.4 ? '*' : '+';
-      const target = op === '+' ? vals.reduce((a, b) => a + b, 0) : prod;
+      if (eligible.includes('*') && prod > 500) eligible = eligible.filter(op => op !== '*');
+      if (eligible.length === 0) eligible = ['+'];
+      const op = eligible[Math.floor(rng() * eligible.length)];
+      let target;
+      if (op === '+') target = vals.reduce((a, b) => a + b, 0);
+      else if (op === '*') target = vals.reduce((a, b) => a * b, 1);
+      else if (op === '-') target = Math.abs(vals[0] - vals[1]);
+      else target = Math.max(vals[0], vals[1]) / Math.min(vals[0], vals[1]);
       return { cells, op, target };
     });
     const puzzle = { size: cfg.size, cages };
@@ -766,7 +806,7 @@ function computeCellBorders(puzzle) {
 }
 
 function getCageHintLabel(cage) {
-  const sym = cage.op === '+' ? '+' : '×';
+  const sym = { '+': '+', '*': '×', '-': '−', '/': '÷' }[cage.op] || cage.op;
   return `${cage.target}${sym}`;
 }
 
@@ -912,12 +952,40 @@ function getCageStatus(puzzle, cageMap, ci) {
   const cage = puzzle.cages[ci];
   const vals = cage.cells.map(i => grid[i]);
   if (vals.some(v => v === 0)) return 'incomplete';
-  const result = cage.op === '+' ? vals.reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a * b, 1);
+  let result;
+  if (cage.op === '+') result = vals.reduce((a, b) => a + b, 0);
+  else if (cage.op === '*') result = vals.reduce((a, b) => a * b, 1);
+  else if (cage.op === '-') result = Math.abs(vals[0] - vals[1]);
+  else { const mx = Math.max(...vals); const mn = Math.min(...vals); result = (mn !== 0 && mx % mn === 0) ? mx / mn : -1; }
   return result === cage.target ? 'correct' : 'incorrect';
 }
 
 function isPuzzleComplete(puzzle, cageMap) {
-  return puzzle.cages.every((_, ci) => getCageStatus(puzzle, cageMap, ci) === 'correct');
+  if (!puzzle.cages.every((_, ci) => getCageStatus(puzzle, cageMap, ci) === 'correct')) return false;
+  const cfg = DIFFICULTY[currentDiff];
+  if (!cfg) return true;
+  const { size } = puzzle;
+  if (cfg.rowUnique) {
+    for (let r = 0; r < size; r++) {
+      const seen = new Set();
+      for (let c = 0; c < size; c++) {
+        const v = grid[r * size + c];
+        if (v !== 0 && seen.has(v)) return false;
+        seen.add(v);
+      }
+    }
+  }
+  if (cfg.colUnique) {
+    for (let c = 0; c < size; c++) {
+      const seen = new Set();
+      for (let r = 0; r < size; r++) {
+        const v = grid[r * size + c];
+        if (v !== 0 && seen.has(v)) return false;
+        seen.add(v);
+      }
+    }
+  }
+  return true;
 }
 
 /* ─────────────────────────────────────────
@@ -959,6 +1027,22 @@ function updateCellDisplay(idx) {
     cell.classList.add('cage-correct');
   } else if (status === 'incorrect') {
     cell.classList.add('cage-incorrect');
+  }
+
+  // Row/col duplicate highlight
+  cell.style.color = '';
+  const cfg = DIFFICULTY[currentDiff];
+  if (cfg && grid[idx] !== 0) {
+    const { size } = currentPuzzle;
+    const row = (idx / size) | 0, col = idx % size;
+    let hasDup = false;
+    if (cfg.rowUnique) {
+      for (let c = 0; c < size; c++) { if (c !== col && grid[row * size + c] === grid[idx]) { hasDup = true; break; } }
+    }
+    if (!hasDup && cfg.colUnique) {
+      for (let r = 0; r < size; r++) { if (r !== row && grid[r * size + col] === grid[idx]) { hasDup = true; break; } }
+    }
+    if (hasDup) { cell.style.color = '#dc2626'; }
   }
 
   // Update selection
