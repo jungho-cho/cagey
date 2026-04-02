@@ -475,7 +475,7 @@
   <div class="logo">CAGEY</div>
   <div class="timer" id="timer">0:00</div>
   <div id="streak-badge" style="font-size:13px;color:#888">🔥<span id="streak-num">0</span></div>
-  <button class="undo-btn" id="lb-btn" onclick="openLbModal()" title="Leaderboard">🏆</button>
+  <button class="undo-btn" id="lb-btn" onclick="openLbModal(currentDiff)" title="Leaderboard">🏆</button>
   <button class="sound-btn" id="sound-btn" title="Toggle sound">🔊</button>
   <button class="undo-btn" id="undo-btn">↩ Undo</button>
 </header>
@@ -521,7 +521,7 @@
     <div class="share-preview" id="share-preview"></div>
     <button class="modal-btn primary" id="share-btn">📤 Share Result</button>
     <button class="modal-btn secondary" id="next-btn">Next Puzzle →</button>
-    <button class="modal-btn secondary" onclick="document.getElementById('modal').classList.add('hidden');openLbModal();">🏆 Leaderboard</button>
+    <button class="modal-btn secondary" onclick="document.getElementById('modal').classList.add('hidden');openLbModal(currentDiff);">🏆 Leaderboard</button>
     <button class="modal-next-diff hidden" id="try-harder-btn"></button>
   </div>
 </div>
@@ -753,7 +753,22 @@ let lbMainTab = 'daily';
 let lbDiff = 'easy';
 let lbPeriod = 'daily';
 
-function openLbModal() {
+function openLbModal(contextDiff) {
+  // Set context: if playing daily, open daily tab; otherwise open difficulty tab matching current difficulty
+  if (contextDiff) {
+    lbDiff = contextDiff;
+    // Update active difficulty tab
+    document.querySelectorAll('.lb-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.diff === lbDiff);
+    });
+  }
+  const isDaily = document.querySelector('.diff-chip.active')?.textContent?.includes('Daily');
+  lbMainTab = isDaily ? 'daily' : 'difficulty';
+  document.querySelectorAll('.lb-main-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.main === lbMainTab);
+  });
+  document.getElementById('lb-diff-tabs').style.display = lbMainTab === 'difficulty' ? '' : 'none';
+
   document.getElementById('lb-modal').classList.remove('hidden');
   const nameInput = document.getElementById('lb-name-input');
   nameInput.value = getPlayerName();
