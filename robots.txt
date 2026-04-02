@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cagey.app/sitemap.xml
+Sitemap: https://playcagey.com/sitemap.xml
