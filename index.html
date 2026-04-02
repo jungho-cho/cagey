@@ -528,7 +528,7 @@
 
 <!-- Leaderboard modal -->
 <div class="modal-overlay hidden" id="lb-modal">
-  <div class="modal" style="max-width: 420px; padding: 20px;">
+  <div class="modal" style="max-width: 420px; max-height: 90dvh; overflow-y: auto; padding: 20px;">
     <div class="modal-title">🏆 Leaderboard</div>
 
     <!-- Main tabs: Daily vs Difficulty -->
@@ -690,11 +690,16 @@ function setPlayerName(name) {
   localStorage.setItem('cagey_player_name', name.trim().slice(0, 20) || 'Player');
 }
 
+let _lastSubmitTime = 0;
 async function submitScore(difficulty, solveTimeSeconds, isDaily, puzzleDate) {
   if (!_sb) return;
+  // Rate limit: max 1 submit per 3 seconds
+  const now = Date.now();
+  if (now - _lastSubmitTime < 3000) return;
+  _lastSubmitTime = now;
   const score = Math.max(0, 3600 - solveTimeSeconds);
   try {
-    await _sb.from('rankings').insert({
+    await _sb.from('rankings').upsert({
       player_id: getPlayerId(),
       player_name: getPlayerName(),
       platform: 'web',
@@ -703,7 +708,7 @@ async function submitScore(difficulty, solveTimeSeconds, isDaily, puzzleDate) {
       puzzle_date: puzzleDate || null,
       solve_time_seconds: solveTimeSeconds,
       score,
-    });
+    }, { onConflict: 'player_id,puzzle_date,difficulty', ignoreDuplicates: false });
   } catch (e) { console.error('Score submit failed:', e); }
 }
 
@@ -822,9 +827,10 @@ async function loadLeaderboard() {
     const timeStr = mins + ':' + secs.toString().padStart(2, '0');
     const medal = e.rank <= 3 ? ['\u{1F947}','\u{1F948}','\u{1F949}'][e.rank - 1] : e.rank;
     const isMe = e.player_id === myId;
+    const safeName = (e.player_name || 'Player').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]);
     return '<div class="lb-row' + (isMe ? ' me' : '') + '">' +
       '<span class="lb-rank">' + medal + '</span>' +
-      '<span class="lb-name">' + e.player_name + '</span>' +
+      '<span class="lb-name">' + safeName + '</span>' +
       '<span class="lb-score">' + e.score + '</span>' +
       '<span class="lb-time">' + timeStr + '</span>' +
     '</div>';
