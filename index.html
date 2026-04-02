@@ -212,11 +212,21 @@
 
 
   /* ── Leaderboard ── */
+  .lb-main-tab {
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface); font-size: 13px; cursor: pointer; font-weight: 500;
+  }
+  .lb-main-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
   .lb-tab {
     padding: 6px 16px; border: 1px solid var(--border); border-radius: 16px;
     background: var(--surface); font-size: 13px; cursor: pointer;
   }
   .lb-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .lb-period-tab {
+    padding: 4px 12px; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); font-size: 11px; cursor: pointer;
+  }
+  .lb-period-tab.active { background: #374151; color: white; border-color: #374151; }
   .lb-row {
     display: flex; align-items: center; padding: 6px 8px; border-bottom: 1px solid #f0f0ee;
     font-size: 13px;
@@ -510,14 +520,38 @@
 
 <!-- Leaderboard modal -->
 <div class="modal-overlay hidden" id="lb-modal">
-  <div class="modal" style="max-width: 400px;">
+  <div class="modal" style="max-width: 420px; padding: 20px;">
     <div class="modal-title">🏆 Leaderboard</div>
-    <div style="display: flex; gap: 8px; margin-bottom: 12px; justify-content: center;">
-      <button class="lb-tab active" data-tab="daily">Today</button>
-      <button class="lb-tab" data-tab="alltime">All Time</button>
+
+    <!-- Main tabs: Daily vs Difficulty -->
+    <div style="display: flex; gap: 6px; margin-bottom: 12px; justify-content: center;">
+      <button class="lb-main-tab active" data-main="daily">🔥 데일리 도전</button>
+      <button class="lb-main-tab" data-main="difficulty">📊 난이도별</button>
     </div>
-    <div id="lb-player-rank" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
-    <div id="lb-list" style="max-height: 300px; overflow-y: auto;"></div>
+
+    <!-- Difficulty sub-tabs (hidden when daily) -->
+    <div id="lb-diff-tabs" style="display:none;">
+      <div style="display: flex; gap: 4px; margin-bottom: 8px; justify-content: center; flex-wrap: wrap;">
+        <button class="lb-tab active" data-diff="easy">Easy</button>
+        <button class="lb-tab" data-diff="medium">Medium</button>
+        <button class="lb-tab" data-diff="hard">Hard</button>
+        <button class="lb-tab" data-diff="expert">Expert</button>
+      </div>
+      <div style="display: flex; gap: 4px; margin-bottom: 8px; justify-content: center;">
+        <button class="lb-period-tab active" data-period="daily">오늘</button>
+        <button class="lb-period-tab" data-period="weekly">이번주</button>
+        <button class="lb-period-tab" data-period="monthly">이번달</button>
+        <button class="lb-period-tab" data-period="alltime">전체</button>
+      </div>
+    </div>
+
+    <!-- Player rank -->
+    <div id="lb-player-rank" style="font-size: 13px; color: #666; margin-bottom: 8px; text-align: center;"></div>
+
+    <!-- Leaderboard list -->
+    <div id="lb-list" style="max-height: 280px; overflow-y: auto;"></div>
+
+    <!-- Player name -->
     <div style="margin-top: 12px;">
       <label style="font-size: 12px; color: #888;">Your name:</label>
       <input type="text" id="lb-name-input" maxlength="20" placeholder="Player"
@@ -673,12 +707,24 @@ async function fetchDailyLeaderboard(date, difficulty) {
   } catch (e) { return []; }
 }
 
-async function fetchAlltimeLeaderboard(difficulty) {
+async function fetchDifficultyLeaderboard(difficulty, period) {
   if (!_sb) return [];
   try {
-    const { data } = await _sb.rpc('get_alltime_leaderboard', { p_difficulty: difficulty, p_limit: 20 });
+    const { data } = await _sb.rpc('get_difficulty_leaderboard', {
+      p_difficulty: difficulty, p_period: period, p_limit: 30
+    });
     return data || [];
   } catch (e) { return []; }
+}
+
+async function fetchPlayerDiffRank(difficulty, period) {
+  if (!_sb) return null;
+  try {
+    const { data } = await _sb.rpc('get_player_difficulty_rank', {
+      p_player_id: getPlayerId(), p_difficulty: difficulty, p_period: period
+    });
+    return data && data[0] ? data[0] : null;
+  } catch (e) { return null; }
 }
 
 async function fetchPlayerRank(date, difficulty) {
@@ -690,24 +736,48 @@ async function fetchPlayerRank(date, difficulty) {
 }
 
 /* ── Leaderboard Modal ── */
-let lbTab = 'daily';
+let lbMainTab = 'daily';
+let lbDiff = 'easy';
+let lbPeriod = 'daily';
 
 function openLbModal() {
   document.getElementById('lb-modal').classList.remove('hidden');
   const nameInput = document.getElementById('lb-name-input');
   nameInput.value = getPlayerName();
-  nameInput.addEventListener('change', (e) => setPlayerName(e.target.value));
-  loadLeaderboard();
+  nameInput.onchange = (e) => setPlayerName(e.target.value);
 
-  // Tab switching
+  // Main tabs
+  document.querySelectorAll('.lb-main-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.lb-main-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      lbMainTab = tab.dataset.main;
+      document.getElementById('lb-diff-tabs').style.display = lbMainTab === 'difficulty' ? '' : 'none';
+      loadLeaderboard();
+    };
+  });
+
+  // Difficulty tabs
   document.querySelectorAll('.lb-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      lbTab = tab.dataset.tab;
+      lbDiff = tab.dataset.diff;
       loadLeaderboard();
     };
   });
+
+  // Period tabs
+  document.querySelectorAll('.lb-period-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.lb-period-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      lbPeriod = tab.dataset.period;
+      loadLeaderboard();
+    };
+  });
+
+  loadLeaderboard();
 }
 
 function closeLbModal() {
@@ -718,16 +788,18 @@ async function loadLeaderboard() {
   const list = document.getElementById('lb-list');
   const rankEl = document.getElementById('lb-player-rank');
   list.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">Loading...</div>';
+  rankEl.textContent = '';
 
   let entries;
-  if (lbTab === 'daily') {
+  if (lbMainTab === 'daily') {
     const date = new Date().toISOString().slice(0, 10);
     entries = await fetchDailyLeaderboard(date, currentDiff);
     const myRank = await fetchPlayerRank(date, currentDiff);
     rankEl.textContent = myRank ? `Your rank: #${myRank.rank} of ${myRank.total_players}` : '';
   } else {
-    entries = await fetchAlltimeLeaderboard(currentDiff);
-    rankEl.textContent = '';
+    entries = await fetchDifficultyLeaderboard(lbDiff, lbPeriod);
+    const myRank = await fetchPlayerDiffRank(lbDiff, lbPeriod);
+    rankEl.textContent = myRank ? `Your rank: #${myRank.rank} of ${myRank.total_players}` : '';
   }
 
   if (!entries || entries.length === 0) {
@@ -735,19 +807,19 @@ async function loadLeaderboard() {
     return;
   }
 
-  const playerId = getPlayerId();
+  const myId = getPlayerId();
   list.innerHTML = entries.map(e => {
     const mins = Math.floor(e.solve_time_seconds / 60);
     const secs = e.solve_time_seconds % 60;
-    const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+    const timeStr = mins + ':' + secs.toString().padStart(2, '0');
     const medal = e.rank <= 3 ? ['\u{1F947}','\u{1F948}','\u{1F949}'][e.rank - 1] : e.rank;
-    const isMe = e.player_name === getPlayerName();
-    return `<div class="lb-row${isMe ? ' me' : ''}">
-      <span class="lb-rank">${medal}</span>
-      <span class="lb-name">${e.player_name}</span>
-      <span class="lb-score">${e.score}</span>
-      <span class="lb-time">${timeStr}</span>
-    </div>`;
+    const isMe = e.player_id === myId;
+    return '<div class="lb-row' + (isMe ? ' me' : '') + '">' +
+      '<span class="lb-rank">' + medal + '</span>' +
+      '<span class="lb-name">' + e.player_name + '</span>' +
+      '<span class="lb-score">' + e.score + '</span>' +
+      '<span class="lb-time">' + timeStr + '</span>' +
+    '</div>';
   }).join('');
 }
 
