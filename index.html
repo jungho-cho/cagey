@@ -211,6 +211,22 @@
   .hint-count { font-size: 12px; color: var(--muted); }
 
 
+  /* ── Leaderboard ── */
+  .lb-tab {
+    padding: 6px 16px; border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface); font-size: 13px; cursor: pointer;
+  }
+  .lb-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .lb-row {
+    display: flex; align-items: center; padding: 6px 8px; border-bottom: 1px solid #f0f0ee;
+    font-size: 13px;
+  }
+  .lb-row.me { background: #eff6ff; font-weight: 600; }
+  .lb-rank { width: 28px; font-weight: 700; color: var(--muted); }
+  .lb-name { flex: 1; }
+  .lb-score { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
+  .lb-time { width: 50px; text-align: right; color: var(--muted); font-size: 12px; }
+
   /* ── Modal (Clear screen) ── */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.4);
@@ -379,6 +395,7 @@
     100% { opacity: 0.15; transform: translateY(-40px) rotate(var(--rot, 15deg)); }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -440,6 +457,7 @@
   <div class="logo">CAGEY</div>
   <div class="timer" id="timer">0:00</div>
   <div id="streak-badge" style="font-size:13px;color:#888">🔥<span id="streak-num">0</span></div>
+  <button class="undo-btn" id="lb-btn" onclick="openLbModal()" title="Leaderboard">🏆</button>
   <button class="sound-btn" id="sound-btn" title="Toggle sound">🔊</button>
   <button class="undo-btn" id="undo-btn">↩ Undo</button>
 </header>
@@ -480,11 +498,32 @@
       <div class="stat"><div class="stat-num" id="modal-time">—</div><div class="stat-lbl">Time</div></div>
       <div class="stat"><div class="stat-num" id="modal-hints">0</div><div class="stat-lbl">Hints</div></div>
       <div class="stat"><div class="stat-num" id="modal-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
+      <div class="stat" id="modal-rank-stat" style="display:none;"><div class="stat-num" id="modal-rank">—</div><div class="stat-lbl">Rank</div></div>
     </div>
     <div class="share-preview" id="share-preview"></div>
     <button class="modal-btn primary" id="share-btn">📤 Share Result</button>
     <button class="modal-btn secondary" id="next-btn">Next Puzzle →</button>
+    <button class="modal-btn secondary" onclick="document.getElementById('modal').classList.add('hidden');openLbModal();">🏆 Leaderboard</button>
     <button class="modal-next-diff hidden" id="try-harder-btn"></button>
+  </div>
+</div>
+
+<!-- Leaderboard modal -->
+<div class="modal-overlay hidden" id="lb-modal">
+  <div class="modal" style="max-width: 400px;">
+    <div class="modal-title">🏆 Leaderboard</div>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px; justify-content: center;">
+      <button class="lb-tab active" data-tab="daily">Today</button>
+      <button class="lb-tab" data-tab="alltime">All Time</button>
+    </div>
+    <div id="lb-player-rank" style="font-size: 13px; color: #666; margin-bottom: 8px;"></div>
+    <div id="lb-list" style="max-height: 300px; overflow-y: auto;"></div>
+    <div style="margin-top: 12px;">
+      <label style="font-size: 12px; color: #888;">Your name:</label>
+      <input type="text" id="lb-name-input" maxlength="20" placeholder="Player"
+        style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 4px;">
+    </div>
+    <button class="modal-btn secondary" onclick="closeLbModal()">Close</button>
   </div>
 </div>
 
@@ -585,6 +624,131 @@ function playPuzzleComplete() {
   notes.forEach((freq, i) => {
     setTimeout(() => playTone(freq, 0.15, 'sine', 0.12), i * 80);
   });
+}
+
+/* ─────────────────────────────────────────
+   SUPABASE
+───────────────────────────────────────── */
+const SUPABASE_URL = 'https://nrmyylhziofdlgmtcqyt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_n49x6X14kfnn59p9GOp2mQ_QfBycb5N';
+const _sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// Anonymous player ID (persistent per device)
+function getPlayerId() {
+  let id = localStorage.getItem('cagey_player_id');
+  if (!id) { id = 'web_' + crypto.randomUUID(); localStorage.setItem('cagey_player_id', id); }
+  return id;
+}
+
+// Player name (editable)
+function getPlayerName() {
+  return localStorage.getItem('cagey_player_name') || 'Player';
+}
+function setPlayerName(name) {
+  localStorage.setItem('cagey_player_name', name.trim().slice(0, 20) || 'Player');
+}
+
+async function submitScore(difficulty, solveTimeSeconds, isDaily, puzzleDate) {
+  if (!_sb) return;
+  const score = Math.max(0, 3600 - solveTimeSeconds);
+  try {
+    await _sb.from('rankings').insert({
+      player_id: getPlayerId(),
+      player_name: getPlayerName(),
+      platform: 'web',
+      difficulty,
+      is_daily: isDaily,
+      puzzle_date: puzzleDate || null,
+      solve_time_seconds: solveTimeSeconds,
+      score,
+    });
+  } catch (e) { console.error('Score submit failed:', e); }
+}
+
+async function fetchDailyLeaderboard(date, difficulty) {
+  if (!_sb) return [];
+  try {
+    const { data } = await _sb.rpc('get_daily_leaderboard', { p_date: date, p_difficulty: difficulty || 'medium', p_limit: 20 });
+    return data || [];
+  } catch (e) { return []; }
+}
+
+async function fetchAlltimeLeaderboard(difficulty) {
+  if (!_sb) return [];
+  try {
+    const { data } = await _sb.rpc('get_alltime_leaderboard', { p_difficulty: difficulty, p_limit: 20 });
+    return data || [];
+  } catch (e) { return []; }
+}
+
+async function fetchPlayerRank(date, difficulty) {
+  if (!_sb) return null;
+  try {
+    const { data } = await _sb.rpc('get_player_daily_rank', { p_player_id: getPlayerId(), p_date: date, p_difficulty: difficulty || 'medium' });
+    return data && data[0] ? data[0] : null;
+  } catch (e) { return null; }
+}
+
+/* ── Leaderboard Modal ── */
+let lbTab = 'daily';
+
+function openLbModal() {
+  document.getElementById('lb-modal').classList.remove('hidden');
+  const nameInput = document.getElementById('lb-name-input');
+  nameInput.value = getPlayerName();
+  nameInput.addEventListener('change', (e) => setPlayerName(e.target.value));
+  loadLeaderboard();
+
+  // Tab switching
+  document.querySelectorAll('.lb-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      lbTab = tab.dataset.tab;
+      loadLeaderboard();
+    };
+  });
+}
+
+function closeLbModal() {
+  document.getElementById('lb-modal').classList.add('hidden');
+}
+
+async function loadLeaderboard() {
+  const list = document.getElementById('lb-list');
+  const rankEl = document.getElementById('lb-player-rank');
+  list.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">Loading...</div>';
+
+  let entries;
+  if (lbTab === 'daily') {
+    const date = new Date().toISOString().slice(0, 10);
+    entries = await fetchDailyLeaderboard(date, currentDiff);
+    const myRank = await fetchPlayerRank(date, currentDiff);
+    rankEl.textContent = myRank ? `Your rank: #${myRank.rank} of ${myRank.total_players}` : '';
+  } else {
+    entries = await fetchAlltimeLeaderboard(currentDiff);
+    rankEl.textContent = '';
+  }
+
+  if (!entries || entries.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">No scores yet. Be the first!</div>';
+    return;
+  }
+
+  const playerId = getPlayerId();
+  list.innerHTML = entries.map(e => {
+    const mins = Math.floor(e.solve_time_seconds / 60);
+    const secs = e.solve_time_seconds % 60;
+    const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+    const medal = e.rank <= 3 ? ['\u{1F947}','\u{1F948}','\u{1F949}'][e.rank - 1] : e.rank;
+    const isMe = e.player_name === getPlayerName();
+    return `<div class="lb-row${isMe ? ' me' : ''}">
+      <span class="lb-rank">${medal}</span>
+      <span class="lb-name">${e.player_name}</span>
+      <span class="lb-score">${e.score}</span>
+      <span class="lb-time">${timeStr}</span>
+    </div>`;
+  }).join('');
 }
 
 // Init sound button
@@ -1461,6 +1625,21 @@ function showClearScreen() {
     localStorage.setItem(key + '_share', shareText);
   }
   isDailyMode = false;
+
+  // Submit score to leaderboard
+  const puzzleDate = wasDaily ? new Date().toISOString().slice(0, 10) : null;
+  submitScore(currentDiff, secs, wasDaily, puzzleDate);
+
+  // Fetch and display rank
+  document.getElementById('modal-rank-stat').style.display = 'none';
+  if (puzzleDate) {
+    fetchPlayerRank(puzzleDate, currentDiff).then(r => {
+      if (r) {
+        document.getElementById('modal-rank').textContent = '#' + r.rank;
+        document.getElementById('modal-rank-stat').style.display = '';
+      }
+    });
+  }
 
   document.getElementById('share-preview').innerHTML =
     shareText.replace(/\n/g, '<br>');
