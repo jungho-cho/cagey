@@ -1,0 +1,27 @@
+# Cagey — Free Daily Cage Puzzle Game
+
+> A daily math puzzle game with progressive KenKen-style rules.
+
+Cagey is a free browser-based puzzle game at https://playcagey.com where players fill cages with numbers so they add, subtract, multiply, or divide to hit a target value.
+
+## Game Rules
+
+- Fill each cage so the numbers combine to the target using the shown operation (+, ×, −, ÷)
+- Easy (4×4): Addition only, no row/column rules
+- Medium (5×5): Addition and multiplication, each number appears once per row
+- Hard (6×6): All four operations, each number appears once per row and column
+- Expert (8×8): All four operations, full row and column uniqueness
+
+## Features
+
+- New daily puzzle every day (same puzzle for all players)
+- Four difficulty levels with progressive rules
+- Leaderboard with daily and all-time rankings
+- Hint system, undo support, streak tracking
+- Sound effects and responsive design (mobile + desktop)
+- No account required, free to play
+
+## About
+
+Created by Jungho Cho. Built with Vanilla JavaScript, no frameworks.
+Puzzle generation uses backtracking solver with Latin square verification.

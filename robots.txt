@@ -2,3 +2,6 @@ User-agent: *
 Allow: /
 
 Sitemap: https://playcagey.com/sitemap.xml
+
+# AI crawlers
+# llms.txt: https://playcagey.com/llms.txt

@@ -34,20 +34,50 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Cagey",
-  "url": "https://playcagey.com/",
-  "description": "A free daily math puzzle game. Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive KenKen-style rules at higher levels.",
-  "applicationCategory": "GameApplication",
-  "genre": "Puzzle",
-  "operatingSystem": "Any",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "author": { "@type": "Person", "name": "Jungho Cho" },
-  "screenshot": "https://playcagey.com/og-image.png"
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://playcagey.com/#website",
+      "name": "Cagey",
+      "url": "https://playcagey.com/",
+      "description": "A free daily cage math puzzle game with progressive KenKen-style rules.",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://playcagey.com/#creator" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://playcagey.com/#creator",
+      "name": "Jungho Cho"
+    },
+    {
+      "@type": ["WebApplication", "Game"],
+      "@id": "https://playcagey.com/#game",
+      "name": "Cagey",
+      "url": "https://playcagey.com/",
+      "description": "A free daily math puzzle game. Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive KenKen-style rules — row/col uniqueness at higher levels.",
+      "inLanguage": "en",
+      "applicationCategory": "GameApplication",
+      "genre": "Puzzle",
+      "operatingSystem": "Web Browser",
+      "browserRequirements": "Requires JavaScript",
+      "featureList": ["Daily puzzle challenge", "Four difficulty levels", "Hint system", "Undo support", "Leaderboard", "Streak tracking", "Progressive KenKen-style rules"],
+      "playMode": "SinglePlayer",
+      "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 1 },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+      "screenshot": "https://playcagey.com/og-image.png",
+      "image": "https://playcagey.com/og-image.png",
+      "author": { "@id": "https://playcagey.com/#creator" },
+      "publisher": { "@id": "https://playcagey.com/#creator" },
+      "isPartOf": { "@id": "https://playcagey.com/#website" }
+    }
+  ]
 }
 </script>
 
 <meta name="theme-color" content="#fafaf8">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/favicon.svg">
 <style>
