@@ -518,6 +518,7 @@ function buildRootRedirect() {
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="naver-site-verification" content="044d726e86042690549cdf9273158e6ce3aaf77d" />
 <title>Cagey — Redirecting...</title>
 <script>
   // Detect browser language and redirect
