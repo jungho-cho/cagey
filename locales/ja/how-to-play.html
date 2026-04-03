@@ -1,0 +1,120 @@
+<div class="how-to-section">
+  <h1 class="how-to-h1">Cagey の遊び方</h1>
+  <p>Cagey は毎日新しい問題が届く数学パズルゲームです。マス目をケージ（囲い）に分け、数字を入れて目標の数を作ります。数独が好きな方なら、きっとハマるはずです。登録不要、ブラウザだけですぐに遊べます。</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">基本ルール</h2>
+  <p>Cagey のパズルは、グリッドを<strong>ケージ</strong>と呼ばれるグループに分割した形です。各ケージには目標の数と演算記号が表示されています（例：<code>6+</code>、<code>12&times;</code>）。</p>
+  <ul>
+    <li>グリッドのすべてのマスに数字を入れてください。</li>
+    <li>ケージ内の数字を指定された演算で計算すると、目標の数になる必要があります。</li>
+    <li>高い難易度では、同じ行や列に同じ数字を入れることができません（数独と同じルール）。</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">演算の種類</h2>
+  <ul>
+    <li><strong>+（たし算）</strong> — ケージ内の数字の合計が目標になります。例：3マスのケージで <code>7+</code> → 1 + 2 + 4</li>
+    <li><strong>&times;（かけ算）</strong> — 数字の積が目標になります。例：2マスのケージで <code>12&times;</code> → 3 &times; 4</li>
+    <li><strong>&minus;（ひき算）</strong> — 2つの数字の差が目標になります（2マスのケージのみ）。例：<code>2&minus;</code> → 5 &minus; 3</li>
+    <li><strong>&divide;（わり算）</strong> — 大きい数を小さい数で割った商が目標になります（2マスのケージのみ）。例：<code>3&divide;</code> → 6 &divide; 2</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">難易度について</h2>
+  <table>
+    <thead>
+      <tr><th>難易度</th><th>グリッド</th><th>使用する演算</th><th>重複ルール</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Easy（やさしい）</strong></td>
+        <td>4&times;4</td>
+        <td>たし算のみ</td>
+        <td>なし — 数字は自由に繰り返せます</td>
+      </tr>
+      <tr>
+        <td><strong>Medium（ふつう）</strong></td>
+        <td>5&times;5</td>
+        <td>たし算 + かけ算</td>
+        <td>同じ<em>行</em>内で数字の重複不可</td>
+      </tr>
+      <tr>
+        <td><strong>Hard（むずかしい）</strong></td>
+        <td>6&times;6</td>
+        <td>四則演算すべて</td>
+        <td>行<em>および</em>列で重複不可</td>
+      </tr>
+      <tr>
+        <td><strong>Expert（エキスパート）</strong></td>
+        <td>8&times;8</td>
+        <td>四則演算すべて</td>
+        <td>行・列の完全な重複不可</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>初めての方は Easy からどうぞ。基本の感覚をつかんだら、難易度を上げてみてください。レベルが上がるたびに新しい発見がありますよ。</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">攻略のコツ</h2>
+  <ol>
+    <li><strong>1マスのケージから始めましょう。</strong> 目標の数がそのまま答えです。確実に埋められるマスから攻めるのが基本です。</li>
+    <li><strong>組み合わせが1通りしかないケージを探しましょう。</strong> 4&times;4 グリッドで <code>1&divide;</code> のケージなら、候補はかなり絞られます。</li>
+    <li><strong>行・列の制約を活用しましょう。</strong> Hard 以上では、すでに入っている数字を手がかりに消去法で絞り込めます。</li>
+    <li><strong>角や端のマスに注目しましょう。</strong> 複数の制約が重なるマスほど、多くのヒントが得られます。</li>
+  </ol>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">例</h2>
+  <div class="how-to-example">
+<pre>
+┌───────┬───┐
+│ 3+    │   │
+│  1    │ 2 │  ← ケージ「3+」= 1 + 2 ✓
+├───┬───┤   │
+│   │ 4×│───┘
+│ 2 │ 1 │     ← ケージ「4×」は別の場所に
+└───┴───┘
+
+2×2 の簡単な例：「3+」のケージに
+1 と 2 が入り、1 + 2 = 3 となります。
+</pre>
+  </div>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">よくある質問</h2>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Cagey と賢賢（KenKen）は同じものですか？</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">ケージ型の数学パズルからインスピレーションを受けていますが、Cagey には独自の段階的難易度システムがあります。Easy モードでは行・列の制約がないので初心者でも楽しめます。難易度を上げると数独のような本格的なロジックチャレンジになります。</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">新しいパズルはいつ届きますか？</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">毎日午前0時（お使いの端末のローカル時間）に新しいパズルが届きます。難易度ごとに別々のパズルが用意されているので、1日最大4問楽しめます。</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">ケージの中で同じ数字を使ってもいいですか？</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">はい、使えます。どの難易度でもケージ内の数字は重複可能です。重複禁止のルールは行と列にのみ適用され、ケージ自体には適用されません。</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">算数が苦手でも遊べますか？</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">もちろんです！ Easy モードは小さな数のたし算だけです。計算力よりも論理的思考と消去法がポイントなので、4まで数えられれば十分遊べますよ。</div>
+    </div>
+  </div>
+</div>

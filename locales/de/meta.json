@@ -1,0 +1,14 @@
+{
+  "homeTitle": "Cagey — Kostenloses tägliches Käfig-Rätsel",
+  "homeDesc": "Ein kostenloses tägliches Mathe-Rätsel. Fülle Käfige mit Zahlen, die mit +, ×, −, ÷ den Zielwert ergeben. KenKen-ähnliche Regeln mit steigendem Schwierigkeitsgrad. Jeden Tag ein neues Rätsel.",
+  "dailyTitle": "Cagey #{num} — Tägliches Käfig-Rätsel — {date}",
+  "dailyDesc": "Löse das heutige Käfig-Rätsel #{num}. Fülle die Käfige mit Zahlen und nutze +, ×, −, ÷, um den Zielwert zu erreichen. Kostenlos, kein Download nötig.",
+  "practiceTitle": "Cagey — {difficulty} Käfig-Rätsel #{num}",
+  "practiceDesc": "Übe Käfig-Rätsel auf {difficulty}-Niveau. Rätsel #{num} — fülle die Käfige mit Zahlen, um den Zielwert zu erreichen. Kostenloses Online-Matherätsel.",
+  "archiveTitle": "Cagey — Rätsel-Archiv",
+  "archiveDesc": "Durchstöbere alle bisherigen Cagey-Tagesrätsel. Spiele jedes verpasste Rätsel nach. Kostenloses Online-Matherätsel.",
+  "howToPlayTitle": "Cagey Spielanleitung — Käfig-Rätsel Regeln & Strategien",
+  "howToPlayDesc": "Lerne, wie man Cagey-Käfig-Rätsel löst. Regeln, Strategien und Tipps für alle Schwierigkeitsgrade. Kostenloses Online-Matherätsel.",
+  "404Title": "Rätsel nicht gefunden — Cagey",
+  "404Desc": "Dieses Rätsel gibt es noch nicht. Spiele das heutige Tagesrätsel oder durchstöbere das Archiv."
+}

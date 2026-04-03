@@ -1,0 +1,120 @@
+<div class="how-to-section">
+  <h1 class="how-to-h1">Cagey 플레이 방법</h1>
+  <p>Cagey는 매일 새로운 수학 퍼즐이에요. 칸(cage)에 숫자를 채워서 목표 숫자를 만들면 됩니다. 스도쿠를 좋아하신다면 분명 빠져들 거예요. 가입도 필요 없고, 바로 플레이할 수 있어요.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">기본 규칙</h2>
+  <p>Cagey 퍼즐은 격자판을 <strong>케이지(cage)</strong>라는 그룹으로 나눈 형태예요. 각 케이지에는 목표 숫자와 연산 기호가 있습니다 (예: <code>6+</code>, <code>12&times;</code>).</p>
+  <ul>
+    <li>격자의 모든 칸에 숫자를 채우세요.</li>
+    <li>케이지 안의 숫자들을 주어진 연산으로 계산하면 목표 숫자가 나와야 해요.</li>
+    <li>높은 난이도에서는 같은 행이나 열에 같은 숫자가 올 수 없어요 (스도쿠처럼).</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">연산 기호</h2>
+  <ul>
+    <li><strong>+ (덧셈)</strong> — 케이지 안의 숫자를 더해서 목표를 만드세요. 예: <code>7+</code>인 3칸 케이지 → 1 + 2 + 4</li>
+    <li><strong>&times; (곱셈)</strong> — 숫자를 곱해서 목표를 만드세요. 예: <code>12&times;</code>인 2칸 케이지 → 3 &times; 4</li>
+    <li><strong>&minus; (뺄셈)</strong> — 두 숫자의 차이가 목표예요 (2칸 케이지만). 예: <code>2&minus;</code> → 5 &minus; 3</li>
+    <li><strong>&divide; (나눗셈)</strong> — 큰 숫자를 작은 숫자로 나눈 값이 목표예요 (2칸 케이지만). 예: <code>3&divide;</code> → 6 &divide; 2</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">난이도 설명</h2>
+  <table>
+    <thead>
+      <tr><th>난이도</th><th>격자 크기</th><th>사용 연산</th><th>중복 규칙</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>쉬움 (Easy)</strong></td>
+        <td>4&times;4</td>
+        <td>덧셈만</td>
+        <td>없음 — 숫자가 자유롭게 반복 가능</td>
+      </tr>
+      <tr>
+        <td><strong>보통 (Medium)</strong></td>
+        <td>5&times;5</td>
+        <td>덧셈 + 곱셈</td>
+        <td>같은 <em>행</em>에서 숫자 중복 불가</td>
+      </tr>
+      <tr>
+        <td><strong>어려움 (Hard)</strong></td>
+        <td>6&times;6</td>
+        <td>사칙연산 모두</td>
+        <td>행 <em>그리고</em> 열에서 중복 불가</td>
+      </tr>
+      <tr>
+        <td><strong>전문가 (Expert)</strong></td>
+        <td>8&times;8</td>
+        <td>사칙연산 모두</td>
+        <td>행 + 열 완전 중복 불가</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>처음이라면 쉬움부터 시작하세요. 기본 감각을 잡은 다음 난이도를 올리면 완전히 다른 재미가 있어요.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">공략 팁</h2>
+  <ol>
+    <li><strong>1칸짜리 케이지부터 채우세요.</strong> 목표 숫자 = 정답이니까 공짜나 마찬가지예요.</li>
+    <li><strong>조합이 하나뿐인 케이지를 찾으세요.</strong> 4&times;4 격자에서 <code>1&divide;</code> 케이지라면? 가능한 쌍이 몇 개 안 돼요.</li>
+    <li><strong>행/열 제약을 활용하세요.</strong> 어려움과 전문가 난이도에서는 이미 있는 숫자를 제거법으로 좁혀나갈 수 있어요.</li>
+    <li><strong>모서리와 가장자리부터 공략하세요.</strong> 여러 제약이 겹치는 칸이 가장 많은 단서를 줍니다.</li>
+  </ol>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">예시</h2>
+  <div class="how-to-example">
+<pre>
+┌───────┬───┐
+│ 3+    │   │
+│  1    │ 2 │  ← "3+" 케이지 = 1 + 2 ✓
+├───┬───┤   │
+│   │ 4×│───┘
+│ 2 │ 1 │     ← "4×" 케이지는 다른 곳에
+└───┴───┘
+
+간단한 2×2 예시: "3+" 케이지에
+1과 2가 들어가면 1 + 2 = 3이 됩니다.
+</pre>
+  </div>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">자주 묻는 질문</h2>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Cagey는 켄켄(KenKen)이랑 같은 건가요?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">케이지 기반 수학 퍼즐에서 영감을 받았지만, Cagey만의 단계별 난이도 시스템이 있어요. 쉬움 모드에서는 행/열 규칙이 아예 없어서 누구나 쉽게 시작할 수 있고, 높은 난이도에서는 스도쿠 같은 논리 도전이 기다리고 있습니다.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">새 퍼즐은 얼마나 자주 나오나요?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">매일 자정(로컬 시간)에 새로운 퍼즐이 나와요. 난이도별로 각각 다른 퍼즐이 있어서 하루에 최대 4판까지 즐길 수 있습니다.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">케이지 안에서 숫자가 겹쳐도 되나요?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">네! 케이지 안에서는 어떤 난이도든 숫자가 겹칠 수 있어요. 중복 금지 규칙은 행과 열에만 적용되고, 케이지 자체에는 적용되지 않습니다.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">수학을 잘해야 하나요?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">전혀요! 쉬움 모드는 작은 숫자의 덧셈만 사용해요. 계산보다는 논리와 소거법이 핵심이에요. 4까지 셀 수 있으면 충분합니다.</div>
+    </div>
+  </div>
+</div>

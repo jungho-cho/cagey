@@ -1,0 +1,120 @@
+<div class="how-to-section">
+  <h1 class="how-to-h1">How to Play Cagey</h1>
+  <p>Cagey is a daily math puzzle where you fill cages with numbers to hit a target. Think of it as a fresh take on KenKen — with progressive difficulty that grows with you. No sign-up, no downloads, just pure puzzle fun.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Basic Rules</h2>
+  <p>Every Cagey puzzle is a grid divided into groups of cells called <strong>cages</strong>. Each cage has a target number and an operation (like <code>6+</code> or <code>12&times;</code>).</p>
+  <ul>
+    <li>Fill every cell in the grid with a number.</li>
+    <li>The numbers inside each cage must combine — using the given operation — to produce the target.</li>
+    <li>At higher difficulties, numbers cannot repeat in any row or column (just like Sudoku).</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Operations</h2>
+  <ul>
+    <li><strong>+ (Addition)</strong> — The numbers in the cage add up to the target. Example: <code>7+</code> in a 3-cell cage could be 1 + 2 + 4.</li>
+    <li><strong>&times; (Multiplication)</strong> — The numbers multiply to the target. Example: <code>12&times;</code> in a 2-cell cage could be 3 &times; 4.</li>
+    <li><strong>&minus; (Subtraction)</strong> — The difference between the two numbers equals the target (2-cell cages only). Example: <code>2&minus;</code> could be 5 &minus; 3.</li>
+    <li><strong>&divide; (Division)</strong> — The quotient of the two numbers equals the target (2-cell cages only). Example: <code>3&divide;</code> could be 6 &divide; 2.</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Difficulty Levels</h2>
+  <table>
+    <thead>
+      <tr><th>Level</th><th>Grid</th><th>Operations</th><th>Uniqueness Rule</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Easy</strong></td>
+        <td>4&times;4</td>
+        <td>Addition only</td>
+        <td>None — numbers can repeat freely</td>
+      </tr>
+      <tr>
+        <td><strong>Medium</strong></td>
+        <td>5&times;5</td>
+        <td>Addition + Multiplication</td>
+        <td>Numbers must be unique in each <em>row</em></td>
+      </tr>
+      <tr>
+        <td><strong>Hard</strong></td>
+        <td>6&times;6</td>
+        <td>All four (+, &times;, &minus;, &divide;)</td>
+        <td>Unique in each row <em>and</em> column</td>
+      </tr>
+      <tr>
+        <td><strong>Expert</strong></td>
+        <td>8&times;8</td>
+        <td>All four (+, &times;, &minus;, &divide;)</td>
+        <td>Full row + column uniqueness</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Start with Easy to learn the mechanics, then work your way up. Each level introduces a new twist that makes you think differently.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Strategy Tips</h2>
+  <ol>
+    <li><strong>Start with single-cell cages.</strong> They give you a freebie — the target <em>is</em> the answer.</li>
+    <li><strong>Look for cages with only one possible combination.</strong> A <code>1&divide;</code> cage on a 4&times;4 grid? Only a few pairs work.</li>
+    <li><strong>Use row/column constraints to eliminate.</strong> On Hard and Expert, if a row already has a 3, no other cell in that row can be 3.</li>
+    <li><strong>Work the corners and edges.</strong> Cells that belong to multiple constrained areas give you the most information.</li>
+  </ol>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Example</h2>
+  <div class="how-to-example">
+<pre>
+┌───────┬───┐
+│ 3+    │   │
+│  1    │ 2 │  ← Cage "3+" = 1 + 2 ✓
+├───┬───┤   │
+│   │ 4×│───┘
+│ 2 │ 1 │     ← Cage "4×" would be elsewhere
+└───┴───┘
+
+A simple 2×2 area: the cage marked "3+"
+contains 1 and 2, because 1 + 2 = 3.
+</pre>
+  </div>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Frequently Asked Questions</h2>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Is Cagey the same as KenKen?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Cagey is inspired by cage-based math puzzles like KenKen, but it adds progressive difficulty. Easy mode drops the row/column rules entirely, making it accessible to beginners. The harder levels bring those rules back for a full logic challenge.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">How often are new puzzles available?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">A fresh puzzle is available every day at midnight (your local time). Each difficulty level gets its own daily puzzle, so you can play up to four puzzles per day.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Can numbers repeat inside a cage?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Yes! Numbers can repeat within a cage at any difficulty level. The uniqueness rule (when active) only applies to rows and columns — not to cages themselves.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Do I need to be good at math?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Not at all. Easy mode uses only addition with small numbers. It's more about logic and elimination than arithmetic. If you can count to 4, you can play Cagey.</div>
+    </div>
+  </div>
+</div>

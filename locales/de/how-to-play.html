@@ -1,0 +1,120 @@
+<div class="how-to-section">
+  <h1 class="how-to-h1">So funktioniert Cagey</h1>
+  <p>Cagey ist ein tägliches Zahlenrätsel, bei dem du Käfige (Cages) mit Zahlen füllst, um ein Ziel zu erreichen. Wer Sudoku oder Logikrätsel mag, wird Cagey lieben. Kein Konto nötig, kein Download — einfach loslegen.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Grundregeln</h2>
+  <p>Jedes Cagey-Rätsel ist ein Gitter, das in Gruppen — sogenannte <strong>Käfige</strong> — unterteilt ist. Jeder Käfig hat eine Zielzahl und eine Rechenoperation (z.&nbsp;B. <code>6+</code> oder <code>12&times;</code>).</p>
+  <ul>
+    <li>Fülle jedes Feld des Gitters mit einer Zahl.</li>
+    <li>Die Zahlen in einem Käfig müssen mit der angegebenen Operation das Ziel ergeben.</li>
+    <li>Bei höheren Schwierigkeitsgraden darf keine Zahl in einer Zeile oder Spalte doppelt vorkommen (wie bei Sudoku).</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Rechenoperationen</h2>
+  <ul>
+    <li><strong>+ (Addition)</strong> — Die Summe der Zahlen im Käfig ergibt das Ziel. Beispiel: <code>7+</code> in einem 3-Felder-Käfig → 1 + 2 + 4</li>
+    <li><strong>&times; (Multiplikation)</strong> — Das Produkt ergibt das Ziel. Beispiel: <code>12&times;</code> in einem 2-Felder-Käfig → 3 &times; 4</li>
+    <li><strong>&minus; (Subtraktion)</strong> — Die Differenz zweier Zahlen ergibt das Ziel (nur 2-Felder-Käfige). Beispiel: <code>2&minus;</code> → 5 &minus; 3</li>
+    <li><strong>&divide; (Division)</strong> — Der Quotient zweier Zahlen ergibt das Ziel (nur 2-Felder-Käfige). Beispiel: <code>3&divide;</code> → 6 &divide; 2</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Schwierigkeitsstufen</h2>
+  <table>
+    <thead>
+      <tr><th>Stufe</th><th>Gitter</th><th>Operationen</th><th>Eindeutigkeitsregel</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Leicht (Easy)</strong></td>
+        <td>4&times;4</td>
+        <td>Nur Addition</td>
+        <td>Keine — Zahlen dürfen sich wiederholen</td>
+      </tr>
+      <tr>
+        <td><strong>Mittel (Medium)</strong></td>
+        <td>5&times;5</td>
+        <td>Addition + Multiplikation</td>
+        <td>Keine Wiederholung in der <em>Zeile</em></td>
+      </tr>
+      <tr>
+        <td><strong>Schwer (Hard)</strong></td>
+        <td>6&times;6</td>
+        <td>Alle vier Grundrechenarten</td>
+        <td>Eindeutig pro Zeile <em>und</em> Spalte</td>
+      </tr>
+      <tr>
+        <td><strong>Experte (Expert)</strong></td>
+        <td>8&times;8</td>
+        <td>Alle vier Grundrechenarten</td>
+        <td>Vollständige Zeilen- und Spalteneindeutigkeit</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Fang mit Leicht an, um die Mechanik kennenzulernen. Jede Stufe bringt eine neue Herausforderung, die dein logisches Denken auf die Probe stellt.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Strategietipps</h2>
+  <ol>
+    <li><strong>Beginne mit Einzelfeld-Käfigen.</strong> Die Zielzahl ist gleichzeitig die Lösung — ein geschenkter Einstieg.</li>
+    <li><strong>Suche nach Käfigen mit nur einer möglichen Kombination.</strong> Ein <code>1&divide;</code>-Käfig im 4&times;4-Gitter lässt nur wenige Zahlenpaare zu.</li>
+    <li><strong>Nutze die Zeilen- und Spaltenbeschränkungen.</strong> Ab Schwer kannst du per Ausschlussverfahren Zahlen eliminieren, die bereits in der Zeile oder Spalte stehen.</li>
+    <li><strong>Konzentriere dich auf Ecken und Ränder.</strong> Felder, die mehreren Einschränkungen unterliegen, liefern die meisten Hinweise.</li>
+  </ol>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Beispiel</h2>
+  <div class="how-to-example">
+<pre>
+┌───────┬───┐
+│ 3+    │   │
+│  1    │ 2 │  ← Käfig „3+" = 1 + 2 ✓
+├───┬───┤   │
+│   │ 4×│───┘
+│ 2 │ 1 │     ← Käfig „4×" befindet sich anderswo
+└───┴───┘
+
+Ein einfaches 2×2-Beispiel: Im Käfig „3+"
+stehen 1 und 2, denn 1 + 2 = 3.
+</pre>
+  </div>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Häufig gestellte Fragen</h2>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Ist Cagey dasselbe wie KenKen?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Cagey ist von Käfig-basierten Zahlenrätseln wie KenKen inspiriert, bietet aber ein eigenes System mit steigender Schwierigkeit. Der Leicht-Modus verzichtet komplett auf Zeilen-/Spaltenregeln und ist perfekt für Einsteiger. Die höheren Stufen bieten dann eine vollwertige Logik-Herausforderung.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Wie oft gibt es ein neues Rätsel?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Jeden Tag um Mitternacht (lokale Zeit) erscheint ein neues Rätsel. Jede Schwierigkeitsstufe hat ihr eigenes Tagesrätsel — das sind bis zu vier Rätsel pro Tag.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Dürfen sich Zahlen innerhalb eines Käfigs wiederholen?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Ja! In einem Käfig dürfen Zahlen auf jeder Schwierigkeitsstufe wiederholt vorkommen. Die Eindeutigkeitsregel gilt nur für Zeilen und Spalten, nicht für Käfige selbst.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Muss ich gut in Mathe sein?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Überhaupt nicht. Der Leicht-Modus verwendet nur Addition mit kleinen Zahlen. Es geht viel mehr um Logik und Ausschlussverfahren als um Kopfrechnen. Wer bis 4 zählen kann, ist bestens gerüstet.</div>
+    </div>
+  </div>
+</div>

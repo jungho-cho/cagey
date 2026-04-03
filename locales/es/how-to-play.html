@@ -1,0 +1,120 @@
+<div class="how-to-section">
+  <h1 class="how-to-h1">Cómo jugar a Cagey</h1>
+  <p>Cagey es un rompecabezas matemático diario en el que rellenas jaulas (cages) con números para alcanzar un objetivo. Si te gustan el Sudoku o los juegos de lógica, te va a encantar. Sin registro, sin descargas — solo abre y juega.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Reglas básicas</h2>
+  <p>Cada puzle de Cagey es una cuadrícula dividida en grupos llamados <strong>jaulas</strong>. Cada jaula tiene un número objetivo y una operación (por ejemplo, <code>6+</code> o <code>12&times;</code>).</p>
+  <ul>
+    <li>Rellena todas las casillas de la cuadrícula con un número.</li>
+    <li>Los números dentro de cada jaula deben combinarse —usando la operación indicada— para dar el objetivo.</li>
+    <li>En dificultades altas, los números no pueden repetirse en ninguna fila o columna (como en Sudoku).</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Operaciones</h2>
+  <ul>
+    <li><strong>+ (Suma)</strong> — Los números de la jaula suman el objetivo. Ejemplo: <code>7+</code> en una jaula de 3 casillas → 1 + 2 + 4</li>
+    <li><strong>&times; (Multiplicación)</strong> — Los números se multiplican para dar el objetivo. Ejemplo: <code>12&times;</code> en una jaula de 2 casillas → 3 &times; 4</li>
+    <li><strong>&minus; (Resta)</strong> — La diferencia entre dos números es el objetivo (solo jaulas de 2 casillas). Ejemplo: <code>2&minus;</code> → 5 &minus; 3</li>
+    <li><strong>&divide; (División)</strong> — El cociente de dos números es el objetivo (solo jaulas de 2 casillas). Ejemplo: <code>3&divide;</code> → 6 &divide; 2</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Niveles de dificultad</h2>
+  <table>
+    <thead>
+      <tr><th>Nivel</th><th>Cuadrícula</th><th>Operaciones</th><th>Regla de unicidad</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Fácil (Easy)</strong></td>
+        <td>4&times;4</td>
+        <td>Solo suma</td>
+        <td>Ninguna — los números se pueden repetir</td>
+      </tr>
+      <tr>
+        <td><strong>Medio (Medium)</strong></td>
+        <td>5&times;5</td>
+        <td>Suma + Multiplicación</td>
+        <td>Sin repetir en cada <em>fila</em></td>
+      </tr>
+      <tr>
+        <td><strong>Difícil (Hard)</strong></td>
+        <td>6&times;6</td>
+        <td>Las cuatro operaciones</td>
+        <td>Único por fila <em>y</em> columna</td>
+      </tr>
+      <tr>
+        <td><strong>Experto (Expert)</strong></td>
+        <td>8&times;8</td>
+        <td>Las cuatro operaciones</td>
+        <td>Unicidad completa en filas y columnas</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Si es tu primera vez, empieza por Fácil para pillar la mecánica. Cada nivel añade un giro nuevo que cambia completamente la forma de pensar.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Consejos de estrategia</h2>
+  <ol>
+    <li><strong>Empieza por las jaulas de una sola casilla.</strong> El número objetivo es directamente la respuesta — un regalo.</li>
+    <li><strong>Busca jaulas con una única combinación posible.</strong> Una jaula <code>1&divide;</code> en una cuadrícula 4&times;4 solo admite unas pocas parejas.</li>
+    <li><strong>Usa las restricciones de filas y columnas.</strong> En Difícil y Experto, si una fila ya tiene un 3, puedes descartarlo en las demás casillas de esa fila.</li>
+    <li><strong>Trabaja desde las esquinas y los bordes.</strong> Las casillas que pertenecen a varias zonas restringidas te dan más información.</li>
+  </ol>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Ejemplo</h2>
+  <div class="how-to-example">
+<pre>
+┌───────┬───┐
+│ 3+    │   │
+│  1    │ 2 │  ← Jaula "3+" = 1 + 2 ✓
+├───┬───┤   │
+│   │ 4×│───┘
+│ 2 │ 1 │     ← Jaula "4×" estaría en otro lugar
+└───┴───┘
+
+Un ejemplo sencillo de 2×2: la jaula "3+"
+contiene 1 y 2, porque 1 + 2 = 3.
+</pre>
+  </div>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Preguntas frecuentes</h2>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">¿Cagey es lo mismo que KenKen?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Cagey se inspira en rompecabezas de jaulas como KenKen, pero tiene su propio sistema de dificultad progresiva. El modo Fácil elimina por completo las reglas de filas y columnas, ideal para principiantes. Los niveles más altos recuperan esas reglas para un desafío lógico completo.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">¿Con qué frecuencia hay puzles nuevos?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Cada día a medianoche (hora local) se publica un puzle nuevo. Como cada nivel de dificultad tiene su propio puzle diario, puedes jugar hasta cuatro partidas al día.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">¿Se pueden repetir números dentro de una jaula?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">¡Sí! En cualquier nivel de dificultad, los números pueden repetirse dentro de una jaula. La regla de unicidad solo se aplica a filas y columnas, no a las jaulas en sí.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">¿Necesito ser bueno en matemáticas?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Para nada. El modo Fácil solo usa sumas con números pequeños. Se trata más de lógica y descarte que de cálculo. Si sabes contar hasta 4, puedes jugar a Cagey.</div>
+    </div>
+  </div>
+</div>

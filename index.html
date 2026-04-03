@@ -1266,17 +1266,29 @@ function formatTime(secs) {
 }
 
 function buildShareText(puzzleNum, diffLabel, timeSecs, hintsUsed, streak, hintMask, size) {
-  // Emoji grid: ■ = solved without hint, □ = solved with hint used in that cage
+  // Emoji grid: 🟩 = correct on first fill, 🟨 = corrected, ⬛ = used hint
   let emojiGrid = '';
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
-      emojiGrid += hintMask[r * size + c] ? '□' : '■';
+      const idx = r * size + c;
+      if (hintMask[idx]) {
+        emojiGrid += '⬛';
+      } else {
+        emojiGrid += '🟩';
+      }
     }
     if (r < size - 1) emojiGrid += '\n';
   }
   const timeStr = formatTime(timeSecs);
   const hintStr = hintsUsed === 0 ? 'No hints' : `${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used`;
-  return `Cagey #${puzzleNum} [${diffLabel}] ✓ ${timeStr}\n${hintStr} · ${streak}🔥\nplaycagey.com\n\n${emojiGrid}`;
+  // Include puzzle URL if on a SEO page
+  const pg = window.CAGEY_PAGE;
+  const locale = window.CAGEY_LOCALE || 'en';
+  let url = 'playcagey.com';
+  if (pg && pg.type === 'daily' && pg.date) {
+    url = `playcagey.com/${locale}/daily/${pg.date}`;
+  }
+  return `Cagey #${puzzleNum} [${diffLabel}] ✓ ${timeStr}\n${emojiGrid}\n${hintStr} · ${streak}🔥\n${url}`;
 }
 
 /* ─────────────────────────────────────────
@@ -2076,19 +2088,61 @@ function startGame() {
   }
 }
 
-const hasVisited = localStorage.getItem('cagey_visited');
-if (!hasVisited) {
-  document.getElementById('welcome').classList.remove('hidden');
-  document.getElementById('play-btn').addEventListener('click', () => {
+// ── SEO Page Config (injected by build script) ──
+async function loadSeededPuzzle(diff, seed) {
+  document.getElementById('loading').classList.remove('hidden');
+  await new Promise(r => setTimeout(r, 50));
+  if (diff === 'expert' && !expertBundle) await loadExpertBundle();
+  let puzzle = generate(diff, seed);
+  if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
+  if (!puzzle) { showToast('Could not load puzzle.'); document.getElementById('loading').classList.add('hidden'); return; }
+  currentPuzzle = puzzle;
+  cageBorders = computeCellBorders(puzzle);
+  cageMap = getCageMap(puzzle);
+  createState(puzzle);
+  renderGrid(puzzle, cageBorders, { grid });
+  renderNumpad(puzzle.size);
+  updateNumpadState();
+  startTimer();
+  document.getElementById('loading').classList.add('hidden');
+}
+
+if (window.CAGEY_PAGE) {
+  const pg = window.CAGEY_PAGE;
+  if (pg.type === 'daily' || pg.type === 'practice') {
     localStorage.setItem('cagey_visited', '1');
+    isDailyMode = pg.type === 'daily';
+    puzzleNum = pg.puzzleNum;
+    currentDiff = pg.diff;
+    if (pg.type === 'daily') {
+      document.querySelectorAll('.diff-chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('.diff-chip.daily').classList.add('active');
+    } else {
+      document.querySelectorAll('.diff-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.diff === pg.diff);
+      });
+    }
+    updateDifficultyDesc(pg.diff);
+    loadSeededPuzzle(pg.diff, pg.seed);
+  } else {
     startGame();
-  });
-  document.getElementById('skip-tutorial').addEventListener('click', () => {
-    localStorage.setItem('cagey_visited', '1');
-    startGame();
-  });
+  }
 } else {
-  startGame();
+  // No page config — original behavior (dev mode)
+  const hasVisited = localStorage.getItem('cagey_visited');
+  if (!hasVisited) {
+    document.getElementById('welcome').classList.remove('hidden');
+    document.getElementById('play-btn').addEventListener('click', () => {
+      localStorage.setItem('cagey_visited', '1');
+      startGame();
+    });
+    document.getElementById('skip-tutorial').addEventListener('click', () => {
+      localStorage.setItem('cagey_visited', '1');
+      startGame();
+    });
+  } else {
+    startGame();
+  }
 }
 </script>
 </body>

@@ -1,0 +1,14 @@
+{
+  "homeTitle": "Cagey — Free Daily Cage Puzzle Game",
+  "homeDesc": "A free daily math puzzle game. Fill cages with numbers so they hit the target using +, ×, −, ÷. Progressive KenKen-style rules — row/col uniqueness at higher levels. New puzzle every day.",
+  "dailyTitle": "Cagey #{num} — Daily Cage Puzzle — {date}",
+  "dailyDesc": "Solve today's daily cage puzzle #{num}. Fill cages with numbers using +, ×, −, ÷ to hit each target. Free, no download needed.",
+  "practiceTitle": "Cagey — {difficulty} Cage Puzzle #{num}",
+  "practiceDesc": "Practice cage puzzles at {difficulty} level. Puzzle #{num} — fill cages with numbers to hit each target. Free online math puzzle.",
+  "archiveTitle": "Cagey — Puzzle Archive",
+  "archiveDesc": "Browse all past Cagey daily cage puzzles. Play any puzzle you missed. Free online math puzzle game.",
+  "howToPlayTitle": "How to Play Cagey — Cage Puzzle Rules & Strategy",
+  "howToPlayDesc": "Learn how to solve Cagey cage puzzles. Step-by-step rules, strategies, and tips for all difficulty levels. Free online math puzzle game.",
+  "404Title": "Puzzle Not Found — Cagey",
+  "404Desc": "This puzzle doesn't exist yet. Play today's daily puzzle or browse the archive."
+}

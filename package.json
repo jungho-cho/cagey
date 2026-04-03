@@ -4,7 +4,9 @@
   "description": "Cage puzzle game — +/× grid puzzles with no sudoku rules",
   "scripts": {
     "dev": "npx --yes serve . -l 3000",
-    "start": "npx --yes serve . -l 3000",
+    "start": "npx --yes serve dist -l 3000",
+    "build": "node scripts/build-pages.js",
+    "build:quick": "node scripts/build-pages.js --days 30 --practice 10",
     "benchmark": "node scripts/benchmark.js",
     "test": "node -e \"require('./src/solver'); require('./src/generator'); console.log('imports ok');\""
   },

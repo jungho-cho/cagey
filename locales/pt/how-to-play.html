@@ -1,0 +1,120 @@
+<div class="how-to-section">
+  <h1 class="how-to-h1">Como jogar Cagey</h1>
+  <p>Cagey é um quebra-cabeça matemático diário onde você preenche gaiolas (cages) com números para atingir um alvo. Se você curte Sudoku ou jogos de lógica, vai se amarrar. Sem cadastro, sem download — é só abrir e jogar.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Regras básicas</h2>
+  <p>Cada puzzle do Cagey é uma grade dividida em grupos chamados <strong>gaiolas</strong>. Cada gaiola tem um número-alvo e uma operação (por exemplo, <code>6+</code> ou <code>12&times;</code>).</p>
+  <ul>
+    <li>Preencha todas as células da grade com um número.</li>
+    <li>Os números dentro de cada gaiola devem ser combinados — usando a operação indicada — para chegar ao alvo.</li>
+    <li>Nas dificuldades mais altas, os números não podem se repetir em nenhuma linha ou coluna (igual ao Sudoku).</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Operações</h2>
+  <ul>
+    <li><strong>+ (Adição)</strong> — Os números da gaiola somam o alvo. Exemplo: <code>7+</code> em uma gaiola de 3 células → 1 + 2 + 4</li>
+    <li><strong>&times; (Multiplicação)</strong> — Os números multiplicados dão o alvo. Exemplo: <code>12&times;</code> em uma gaiola de 2 células → 3 &times; 4</li>
+    <li><strong>&minus; (Subtração)</strong> — A diferença entre dois números é o alvo (só gaiolas de 2 células). Exemplo: <code>2&minus;</code> → 5 &minus; 3</li>
+    <li><strong>&divide; (Divisão)</strong> — O quociente de dois números é o alvo (só gaiolas de 2 células). Exemplo: <code>3&divide;</code> → 6 &divide; 2</li>
+  </ul>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Níveis de dificuldade</h2>
+  <table>
+    <thead>
+      <tr><th>Nível</th><th>Grade</th><th>Operações</th><th>Regra de unicidade</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Fácil (Easy)</strong></td>
+        <td>4&times;4</td>
+        <td>Só adição</td>
+        <td>Nenhuma — números podem se repetir</td>
+      </tr>
+      <tr>
+        <td><strong>Médio (Medium)</strong></td>
+        <td>5&times;5</td>
+        <td>Adição + Multiplicação</td>
+        <td>Sem repetição na <em>linha</em></td>
+      </tr>
+      <tr>
+        <td><strong>Difícil (Hard)</strong></td>
+        <td>6&times;6</td>
+        <td>Todas as quatro operações</td>
+        <td>Único por linha <em>e</em> coluna</td>
+      </tr>
+      <tr>
+        <td><strong>Expert (Especialista)</strong></td>
+        <td>8&times;8</td>
+        <td>Todas as quatro operações</td>
+        <td>Unicidade completa em linhas e colunas</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Se é sua primeira vez, comece pelo Fácil para pegar o jeito. Cada nível traz uma novidade que muda completamente sua forma de pensar.</p>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Dicas de estratégia</h2>
+  <ol>
+    <li><strong>Comece pelas gaiolas de uma única célula.</strong> O número-alvo já é a resposta — presente dado!</li>
+    <li><strong>Procure gaiolas com apenas uma combinação possível.</strong> Uma gaiola <code>1&divide;</code> numa grade 4&times;4 só aceita poucos pares de números.</li>
+    <li><strong>Use as restrições de linhas e colunas a seu favor.</strong> No Difícil e Expert, se uma linha já tem um 3, você pode eliminar o 3 das outras células daquela linha.</li>
+    <li><strong>Foque nos cantos e nas bordas.</strong> Células que pertencem a várias zonas restritas dão mais informação.</li>
+  </ol>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Exemplo</h2>
+  <div class="how-to-example">
+<pre>
+┌───────┬───┐
+│ 3+    │   │
+│  1    │ 2 │  ← Gaiola "3+" = 1 + 2 ✓
+├───┬───┤   │
+│   │ 4×│───┘
+│ 2 │ 1 │     ← Gaiola "4×" estaria em outro lugar
+└───┴───┘
+
+Um exemplo simples de 2×2: a gaiola "3+"
+contém 1 e 2, porque 1 + 2 = 3.
+</pre>
+  </div>
+</div>
+
+<div class="how-to-section">
+  <h2 class="how-to-h2">Perguntas frequentes</h2>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Cagey é a mesma coisa que KenKen?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Cagey se inspira em quebra-cabeças baseados em gaiolas como o KenKen, mas tem seu próprio sistema de dificuldade progressiva. O modo Fácil elimina totalmente as regras de linhas e colunas, perfeito para iniciantes. Os níveis mais altos trazem de volta essas regras para um desafio lógico completo.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">De quanto em quanto tempo saem puzzles novos?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Todo dia à meia-noite (horário local) aparece um novo puzzle. Como cada nível de dificuldade tem seu próprio puzzle diário, dá pra jogar até quatro partidas por dia.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Pode repetir número dentro de uma gaiola?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">Pode sim! Em qualquer nível, os números podem se repetir dentro de uma gaiola. A regra de unicidade só vale para linhas e colunas, não para as gaiolas em si.</div>
+    </div>
+  </div>
+
+  <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <div class="faq-q" itemprop="name">Preciso ser bom de matemática?</div>
+    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <div itemprop="text">De jeito nenhum! O modo Fácil usa só adição com números pequenos. O jogo é muito mais sobre lógica e eliminação do que sobre conta. Se você sabe contar até 4, já dá pra jogar Cagey tranquilo.</div>
+    </div>
+  </div>
+</div>

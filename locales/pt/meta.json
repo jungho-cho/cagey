@@ -1,0 +1,14 @@
+{
+  "homeTitle": "Cagey — Puzzle de gaiolas matemático diário e grátis",
+  "homeDesc": "Um puzzle matemático diário e gratuito. Preencha as gaiolas com números que, usando +, ×, −, ÷, atinjam o valor alvo. Regras progressivas no estilo KenKen — unicidade em linhas/colunas nos níveis mais altos. Um novo puzzle todos os dias.",
+  "dailyTitle": "Cagey #{num} — Puzzle de gaiolas diário — {date}",
+  "dailyDesc": "Resolva o puzzle de gaiolas diário #{num}. Use +, ×, −, ÷ para atingir o alvo de cada gaiola. Grátis, sem download.",
+  "practiceTitle": "Cagey — Puzzle de gaiolas {difficulty} #{num}",
+  "practiceDesc": "Pratique puzzles de gaiolas no nível {difficulty}. Puzzle #{num} — preencha as gaiolas com números para atingir cada alvo. Puzzle matemático online grátis.",
+  "archiveTitle": "Cagey — Arquivo de puzzles",
+  "archiveDesc": "Explore todos os puzzles diários anteriores do Cagey. Jogue qualquer puzzle que você perdeu. Puzzle matemático online grátis.",
+  "howToPlayTitle": "Como jogar Cagey — Regras e estratégias",
+  "howToPlayDesc": "Aprenda a resolver os puzzles de gaiolas do Cagey. Regras passo a passo, estratégias e dicas para todos os níveis. Puzzle matemático online grátis.",
+  "404Title": "Puzzle não encontrado — Cagey",
+  "404Desc": "Este puzzle ainda não existe. Jogue o puzzle diário de hoje ou explore o arquivo."
+}

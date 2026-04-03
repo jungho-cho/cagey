@@ -1,0 +1,14 @@
+{
+  "homeTitle": "Cagey — Puzzle de jaulas matemático diario y gratis",
+  "homeDesc": "Un puzzle matemático diario y gratuito. Rellena las jaulas con números que, usando +, ×, −, ÷, den el valor objetivo. Reglas progresivas tipo KenKen — unicidad en filas/columnas en niveles superiores. Un puzzle nuevo cada día.",
+  "dailyTitle": "Cagey #{num} — Puzzle de jaulas diario — {date}",
+  "dailyDesc": "Resuelve el puzzle de jaulas diario #{num}. Usa +, ×, −, ÷ para alcanzar el objetivo de cada jaula. Gratis, sin descargas.",
+  "practiceTitle": "Cagey — Puzzle de jaulas {difficulty} #{num}",
+  "practiceDesc": "Practica puzzles de jaulas en nivel {difficulty}. Puzzle #{num} — rellena las jaulas con números para alcanzar cada objetivo. Puzzle matemático online gratis.",
+  "archiveTitle": "Cagey — Archivo de puzzles",
+  "archiveDesc": "Explora todos los puzzles diarios anteriores de Cagey. Juega cualquier puzzle que te hayas perdido. Puzzle matemático online gratis.",
+  "howToPlayTitle": "Cómo jugar a Cagey — Reglas y estrategia",
+  "howToPlayDesc": "Aprende a resolver los puzzles de jaulas de Cagey. Reglas paso a paso, estrategias y consejos para todos los niveles. Puzzle matemático online gratis.",
+  "404Title": "Puzzle no encontrado — Cagey",
+  "404Desc": "Este puzzle aún no existe. Juega el puzzle diario de hoy o explora el archivo."
+}
