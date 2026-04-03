@@ -44,5 +44,7 @@
   "goToArchive": "Zum Archiv",
   "noHints": "Keine Hinweise",
   "hintsUsed": "{n} Hinweis(e) verwendet",
-  "tryHarder": "{difficulty} versuchen →"
+  "tryHarder": "{difficulty} versuchen →",
+  "rankMsg": "Platz {rank} von {total}",
+  "rankMsgTop": "Platz {rank} von {total}!"
 }

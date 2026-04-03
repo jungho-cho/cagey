@@ -44,5 +44,7 @@
   "goToArchive": "Ir para o arquivo",
   "noHints": "Sem dicas",
   "hintsUsed": "{n} dica(s) usada(s)",
-  "tryHarder": "Tentar {difficulty} →"
+  "tryHarder": "Tentar {difficulty} →",
+  "rankMsg": "{rank} de {total}",
+  "rankMsgTop": "{rank} de {total}!"
 }

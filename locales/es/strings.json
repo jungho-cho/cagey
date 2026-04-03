@@ -44,5 +44,7 @@
   "goToArchive": "Ir al archivo",
   "noHints": "Sin pistas",
   "hintsUsed": "{n} pista(s) usada(s)",
-  "tryHarder": "Probar {difficulty} →"
+  "tryHarder": "Probar {difficulty} →",
+  "rankMsg": "{rank} de {total}",
+  "rankMsgTop": "{rank} de {total}!"
 }

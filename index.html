@@ -319,6 +319,22 @@
   .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .stat-num { font-size: 24px; font-weight: 700; }
   .stat-lbl { font-size: 11px; color: var(--muted); }
+  .rank-banner {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 1px solid #fbbf24;
+    border-radius: 12px;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 8px;
+  }
+  .rank-banner.top3 {
+    background: linear-gradient(135deg, #fef9c3, #fde68a);
+    border-color: #f59e0b;
+    font-size: 17px;
+  }
   .share-preview {
     font-family: monospace; font-size: 13px; color: #444;
     line-height: 1.8; text-align: center;
@@ -583,6 +599,7 @@
       <div class="stat"><div class="stat-num" id="modal-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
       <div class="stat" id="modal-rank-stat" style="display:none;"><div class="stat-num" id="modal-rank">—</div><div class="stat-lbl">Rank</div></div>
     </div>
+    <div class="rank-banner hidden" id="rank-banner"></div>
     <div class="share-preview" id="share-preview"></div>
     <button class="modal-btn primary" id="share-btn">📤 Share Result</button>
     <button class="modal-btn secondary" id="next-btn">Next Puzzle →</button>
@@ -1860,13 +1877,27 @@ function showClearScreen() {
 
   // Fetch and display rank
   document.getElementById('modal-rank-stat').style.display = 'none';
+  const banner = document.getElementById('rank-banner');
+  banner.classList.add('hidden');
+  banner.classList.remove('top3');
+
+  const showRank = (r) => {
+    if (!r) return;
+    document.getElementById('modal-rank').textContent = '#' + r.rank;
+    document.getElementById('modal-rank-stat').style.display = '';
+    const S = window.CAGEY_STRINGS || {};
+    const medal = r.rank === 1 ? '🥇 ' : r.rank === 2 ? '🥈 ' : r.rank === 3 ? '🥉 ' : '';
+    const tpl = r.rank <= 3 ? (S.rankMsgTop || '{total}명 중 {rank}등!') : (S.rankMsg || '{total}명 중 {rank}등');
+    const msg = medal + tpl.replace('{total}', r.total_players).replace('{rank}', r.rank);
+    banner.textContent = msg;
+    if (r.rank <= 3) banner.classList.add('top3');
+    banner.classList.remove('hidden');
+  };
+
   if (puzzleDate) {
-    fetchPlayerRank(puzzleDate, currentDiff).then(r => {
-      if (r) {
-        document.getElementById('modal-rank').textContent = '#' + r.rank;
-        document.getElementById('modal-rank-stat').style.display = '';
-      }
-    });
+    fetchPlayerRank(puzzleDate, currentDiff).then(showRank);
+  } else {
+    fetchPlayerDiffRank(currentDiff, 'alltime').then(showRank);
   }
 
   document.getElementById('share-preview').innerHTML =

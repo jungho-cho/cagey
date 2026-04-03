@@ -44,5 +44,7 @@
   "goToArchive": "지난 퍼즐 보기",
   "noHints": "힌트 없이 풀었어요",
   "hintsUsed": "힌트 {n}번 사용",
-  "tryHarder": "{difficulty} 도전하기 →"
+  "tryHarder": "{difficulty} 도전하기 →",
+  "rankMsg": "{total}명 중 {rank}등",
+  "rankMsgTop": "{total}명 중 {rank}등!"
 }

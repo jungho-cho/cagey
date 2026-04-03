@@ -44,5 +44,7 @@
   "goToArchive": "アーカイブを見る",
   "noHints": "ノーヒント",
   "hintsUsed": "ヒント{n}回使用",
-  "tryHarder": "{difficulty}に挑戦 →"
+  "tryHarder": "{difficulty}に挑戦 →",
+  "rankMsg": "{total}人中 {rank}位",
+  "rankMsgTop": "{total}人中 {rank}位!"
 }
