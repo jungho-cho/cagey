@@ -770,16 +770,16 @@ async function submitScore(difficulty, solveTimeSeconds, isDaily, puzzleDate) {
   _lastSubmitTime = now;
   const score = Math.max(0, 3600 - solveTimeSeconds);
   try {
-    await _sb.from('rankings').upsert({
-      player_id: getPlayerId(),
-      player_name: getPlayerName(),
-      platform: 'web',
-      difficulty,
-      is_daily: isDaily,
-      puzzle_date: puzzleDate || null,
-      solve_time_seconds: solveTimeSeconds,
-      score,
-    }, { onConflict: 'player_id,puzzle_date,difficulty', ignoreDuplicates: false });
+    await _sb.rpc('submit_score', {
+      p_player_id: getPlayerId(),
+      p_player_name: getPlayerName(),
+      p_platform: 'web',
+      p_difficulty: difficulty,
+      p_is_daily: isDaily,
+      p_puzzle_date: puzzleDate || 'free',
+      p_solve_time_seconds: solveTimeSeconds,
+      p_score: score,
+    });
   } catch (e) { console.error('Score submit failed:', e); }
 }
 
