@@ -248,6 +248,11 @@ function replaceUIStrings(html, s, locale) {
   html = html.replace('>Your name:<', `>${escHtml(s.yourName)}<`);
   html = html.replace('>Close<', `>${escHtml(s.close)}<`);
 
+  // Leaderboard table header
+  html = html.replace(/<span class="lb-name">Name<\/span>/, `<span class="lb-name">${escHtml(s.player || 'Name')}</span>`);
+  html = html.replace(/<span class="lb-score">Score<\/span>/, `<span class="lb-score">${escHtml(s.score || 'Score')}</span>`);
+  html = html.replace(/<span class="lb-time">Time<\/span>/, `<span class="lb-time">${escHtml(s.time || 'Time')}</span>`);
+
   // Default difficulty description
   html = html.replace(
     />Fill each cage so the numbers add up to the target\. Use numbers 1-4\. No row or column rules [^<]*</,

@@ -263,6 +263,10 @@
     background: var(--surface); font-size: 11px; cursor: pointer;
   }
   .lb-period-tab.active { background: #374151; color: white; border-color: #374151; }
+  .lb-header {
+    display: flex; align-items: center; padding: 6px 8px; border-bottom: 2px solid #e0e0dc;
+    font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
   .lb-row {
     display: flex; align-items: center; padding: 6px 8px; border-bottom: 1px solid #f0f0ee;
     font-size: 13px;
@@ -270,8 +274,29 @@
   .lb-row.me { background: #eff6ff; font-weight: 600; }
   .lb-rank { width: 28px; font-weight: 700; color: var(--muted); }
   .lb-name { flex: 1; }
-  .lb-score { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
-  .lb-time { width: 50px; text-align: right; color: var(--muted); font-size: 12px; }
+  .lb-score { width: 55px; text-align: right; font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
+  .lb-time { width: 55px; text-align: right; color: var(--muted); font-size: 12px; }
+
+  /* ── Language Switcher ── */
+  .lang-wrap { position: relative; }
+  .lang-btn {
+    font-size: 16px; padding: 4px 8px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--surface); cursor: pointer;
+  }
+  .lang-btn:active { background: #f0f0f0; }
+  .lang-dropdown {
+    display: none; position: absolute; top: 100%; right: 0; margin-top: 4px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1); z-index: 200; min-width: 140px;
+    overflow: hidden;
+  }
+  .lang-dropdown.open { display: block; }
+  .lang-option {
+    display: block; width: 100%; padding: 8px 14px; border: none; background: none;
+    text-align: left; font-size: 13px; cursor: pointer; color: var(--text);
+  }
+  .lang-option:hover { background: #f5f5f0; }
+  .lang-option.active { color: var(--accent); font-weight: 600; }
 
   /* ── Modal (Clear screen) ── */
   .modal-overlay {
@@ -505,6 +530,17 @@
   <div id="streak-badge" style="font-size:13px;color:#888">🔥<span id="streak-num">0</span></div>
   <button class="undo-btn" id="lb-btn" onclick="openLbModal(currentDiff)" title="Leaderboard">🏆</button>
   <button class="sound-btn" id="sound-btn" title="Toggle sound">🔊</button>
+  <div class="lang-wrap">
+    <button class="lang-btn" id="lang-btn" title="Language">🌐</button>
+    <div class="lang-dropdown" id="lang-dropdown">
+      <button class="lang-option" data-lang="en">English</button>
+      <button class="lang-option" data-lang="ko">한국어</button>
+      <button class="lang-option" data-lang="ja">日本語</button>
+      <button class="lang-option" data-lang="de">Deutsch</button>
+      <button class="lang-option" data-lang="es">Español</button>
+      <button class="lang-option" data-lang="pt">Português</button>
+    </div>
+  </div>
   <button class="undo-btn" id="undo-btn">↩ Undo</button>
 </header>
 
@@ -585,6 +621,12 @@
     <div id="lb-player-rank" style="font-size: 13px; color: #666; margin-bottom: 8px; text-align: center;"></div>
 
     <!-- Leaderboard list -->
+    <div class="lb-header">
+      <span class="lb-rank">#</span>
+      <span class="lb-name">Name</span>
+      <span class="lb-score">Score</span>
+      <span class="lb-time">Time</span>
+    </div>
     <div id="lb-list" style="max-height: 280px; overflow-y: auto;"></div>
 
     <!-- Player name -->
@@ -889,6 +931,50 @@ document.getElementById('sound-btn').addEventListener('click', () => {
   // Init audio context on first interaction
   if (!_soundMuted) getAudioCtx();
 });
+
+/* ── Language Switcher ── */
+(function() {
+  const langBtn = document.getElementById('lang-btn');
+  const langDrop = document.getElementById('lang-dropdown');
+  if (!langBtn || !langDrop) return;
+
+  // Detect current locale from URL or CAGEY_PAGE
+  const currentLocale = window.CAGEY_LOCALE || (() => {
+    const m = window.location.pathname.match(/^\/(en|ko|ja|de|es|pt)\//);
+    return m ? m[1] : null;
+  })();
+
+  // Highlight current language
+  if (currentLocale) {
+    langDrop.querySelectorAll('.lang-option').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.lang === currentLocale);
+    });
+  }
+
+  // Toggle dropdown
+  langBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    langDrop.classList.toggle('open');
+  });
+
+  // Close on outside click
+  document.addEventListener('click', () => { langDrop.classList.remove('open'); });
+
+  // Switch language
+  langDrop.querySelectorAll('.lang-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const lang = opt.dataset.lang;
+      if (currentLocale) {
+        // On SEO page: swap locale prefix in URL
+        const newPath = window.location.pathname.replace(/^\/(en|ko|ja|de|es|pt)\//, '/' + lang + '/');
+        window.location.href = newPath;
+      } else {
+        // Dev mode (no locale prefix): go to /{lang}/
+        window.location.href = '/' + lang + '/';
+      }
+    });
+  });
+})();
 
 /* ─────────────────────────────────────────
    DIFFICULTY DESCRIPTIONS
