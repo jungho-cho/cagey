@@ -1914,6 +1914,7 @@ async function showClearScreen() {
   const score = Math.max(0, 3600 - secs);
 
   document.getElementById('modal-rank-stat').style.display = 'none';
+  document.getElementById('save-section').style.display = 'none';
   const banner = document.getElementById('rank-banner');
   banner.classList.add('hidden');
   banner.classList.remove('top3');
