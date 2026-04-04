@@ -46,5 +46,7 @@
   "hintsUsed": "{n} pista(s) usada(s)",
   "tryHarder": "Probar {difficulty} →",
   "rankMsg": "{rank} de {total}",
-  "rankMsgTop": "{rank} de {total}!"
+  "rankMsgTop": "{rank} de {total}!",
+  "saveToLeaderboard": "Guardar en ranking",
+  "saved": "✓ Guardado!"
 }

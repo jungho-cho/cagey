@@ -236,6 +236,7 @@ function replaceUIStrings(html, s, locale) {
   html = html.replace('>SOLVED!<', `>${escHtml(s.solved)}<`);
   html = html.replace('>📤 Share Result<', `>📤 ${escHtml(s.shareResult)}<`);
   html = html.replace('>Next Puzzle →<', `>${escHtml(s.nextPuzzle)}<`);
+  if (s.saveToLeaderboard) html = html.replace('>Save to Leaderboard<', `>${escHtml(s.saveToLeaderboard)}<`);
 
   // Leaderboard
   html = html.replace('>🏆 Leaderboard<', `>🏆 ${escHtml(s.leaderboard)}<`);

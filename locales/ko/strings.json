@@ -46,5 +46,7 @@
   "hintsUsed": "힌트 {n}번 사용",
   "tryHarder": "{difficulty} 도전하기 →",
   "rankMsg": "{total}명 중 {rank}등",
-  "rankMsgTop": "{total}명 중 {rank}등!"
+  "rankMsgTop": "{total}명 중 {rank}등!",
+  "saveToLeaderboard": "리더보드에 저장",
+  "saved": "✓ 저장됨!"
 }

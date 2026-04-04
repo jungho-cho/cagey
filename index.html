@@ -335,6 +335,40 @@
     border-color: #f59e0b;
     font-size: 17px;
   }
+  .save-section {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .save-name-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .save-name-input:focus { border-color: var(--accent, #e74c3c); }
+  .save-btn {
+    white-space: nowrap;
+    background: var(--accent, #e74c3c) !important;
+    color: #fff !important;
+    font-weight: 700;
+    padding: 10px 16px !important;
+    border-radius: 10px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .save-btn:disabled { opacity: 0.5; cursor: default; }
+  .save-btn.saved {
+    background: #22c55e !important;
+  }
   .share-preview {
     font-family: monospace; font-size: 13px; color: #444;
     line-height: 1.8; text-align: center;
@@ -600,6 +634,10 @@
       <div class="stat" id="modal-rank-stat" style="display:none;"><div class="stat-num" id="modal-rank">—</div><div class="stat-lbl">Rank</div></div>
     </div>
     <div class="rank-banner hidden" id="rank-banner"></div>
+    <div class="save-section" id="save-section">
+      <input type="text" id="save-name" class="save-name-input" maxlength="20" placeholder="Player">
+      <button class="modal-btn save-btn" id="save-btn">Save to Leaderboard</button>
+    </div>
     <div class="share-preview" id="share-preview"></div>
     <button class="modal-btn primary" id="share-btn">📤 Share Result</button>
     <button class="modal-btn secondary" id="next-btn">Next Puzzle →</button>
@@ -1847,7 +1885,7 @@ function getElapsedSecs() {
 /* ─────────────────────────────────────────
    CLEAR SCREEN
 ───────────────────────────────────────── */
-function showClearScreen() {
+async function showClearScreen() {
   const secs = getElapsedSecs();
   const wasDaily = isDailyMode; // capture before any resets
   const streak = wasDaily ? incrementStreak() : getStreak();
@@ -1871,34 +1909,52 @@ function showClearScreen() {
   }
   isDailyMode = false;
 
-  // Submit score to leaderboard
+  // Calculate hypothetical rank (without saving)
   const puzzleDate = wasDaily ? new Date().toISOString().slice(0, 10) : null;
-  submitScore(currentDiff, secs, wasDaily, puzzleDate);
+  const score = Math.max(0, 3600 - secs);
 
-  // Fetch and display rank
   document.getElementById('modal-rank-stat').style.display = 'none';
   const banner = document.getElementById('rank-banner');
   banner.classList.add('hidden');
   banner.classList.remove('top3');
 
-  const showRank = (r) => {
-    if (!r) return;
-    document.getElementById('modal-rank').textContent = '#' + r.rank;
-    document.getElementById('modal-rank-stat').style.display = '';
-    const S = window.CAGEY_STRINGS || {};
-    const medal = r.rank === 1 ? '🥇 ' : r.rank === 2 ? '🥈 ' : r.rank === 3 ? '🥉 ' : '';
-    const tpl = r.rank <= 3 ? (S.rankMsgTop || '{total}명 중 {rank}등!') : (S.rankMsg || '{total}명 중 {rank}등');
-    const msg = medal + tpl.replace('{total}', r.total_players).replace('{rank}', r.rank);
-    banner.textContent = msg;
-    if (r.rank <= 3) banner.classList.add('top3');
-    banner.classList.remove('hidden');
-  };
+  // Fetch existing leaderboard to calculate rank client-side
+  const entries = wasDaily
+    ? await fetchDailyLeaderboard(puzzleDate, currentDiff)
+    : await fetchDifficultyLeaderboard(currentDiff, 'alltime');
+  const rank = entries.filter(e => e.score > score).length + 1;
+  const total = entries.length + 1;
 
-  if (puzzleDate) {
-    fetchPlayerRank(puzzleDate, currentDiff).then(showRank);
-  } else {
-    fetchPlayerDiffRank(currentDiff, 'alltime').then(showRank);
-  }
+  document.getElementById('modal-rank').textContent = '#' + rank;
+  document.getElementById('modal-rank-stat').style.display = '';
+  const S = window.CAGEY_STRINGS || {};
+  const medal = rank === 1 ? '🥇 ' : rank === 2 ? '🥈 ' : rank === 3 ? '🥉 ' : '';
+  const tpl = rank <= 3 ? (S.rankMsgTop || '{total}명 중 {rank}등!') : (S.rankMsg || '{total}명 중 {rank}등');
+  banner.textContent = medal + tpl.replace('{total}', total).replace('{rank}', rank);
+  if (rank <= 3) banner.classList.add('top3');
+  banner.classList.remove('hidden');
+
+  // Save section: nickname input + save button
+  const saveNameInput = document.getElementById('save-name');
+  const saveBtn = document.getElementById('save-btn');
+  const savedName = getPlayerName();
+  saveNameInput.value = savedName === 'Player' ? '' : savedName;
+  saveNameInput.placeholder = 'Player';
+  const saveLbl = S.saveToLeaderboard || 'Save to Leaderboard';
+  saveBtn.textContent = saveLbl;
+  saveBtn.disabled = false;
+  saveBtn.classList.remove('saved');
+  document.getElementById('save-section').style.display = '';
+
+  saveBtn.onclick = async () => {
+    const name = saveNameInput.value.trim().slice(0, 20) || 'Player';
+    setPlayerName(name);
+    saveBtn.disabled = true;
+    saveBtn.textContent = '...';
+    await submitScore(currentDiff, secs, wasDaily, puzzleDate);
+    saveBtn.textContent = S.saved || '✓ Saved!';
+    saveBtn.classList.add('saved');
+  };
 
   document.getElementById('share-preview').innerHTML =
     shareText.replace(/\n/g, '<br>');

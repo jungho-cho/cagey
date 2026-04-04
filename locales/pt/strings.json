@@ -46,5 +46,7 @@
   "hintsUsed": "{n} dica(s) usada(s)",
   "tryHarder": "Tentar {difficulty} →",
   "rankMsg": "{rank} de {total}",
-  "rankMsgTop": "{rank} de {total}!"
+  "rankMsgTop": "{rank} de {total}!",
+  "saveToLeaderboard": "Salvar no ranking",
+  "saved": "✓ Salvo!"
 }

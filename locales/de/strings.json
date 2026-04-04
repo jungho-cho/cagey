@@ -46,5 +46,7 @@
   "hintsUsed": "{n} Hinweis(e) verwendet",
   "tryHarder": "{difficulty} versuchen →",
   "rankMsg": "Platz {rank} von {total}",
-  "rankMsgTop": "Platz {rank} von {total}!"
+  "rankMsgTop": "Platz {rank} von {total}!",
+  "saveToLeaderboard": "Speichern",
+  "saved": "✓ Gespeichert!"
 }

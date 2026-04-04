@@ -46,5 +46,7 @@
   "hintsUsed": "{n} hint(s) used",
   "tryHarder": "Try {difficulty} →",
   "rankMsg": "#{rank} of {total}",
-  "rankMsgTop": "#{rank} of {total}!"
+  "rankMsgTop": "#{rank} of {total}!",
+  "saveToLeaderboard": "Save to Leaderboard",
+  "saved": "✓ Saved!"
 }
