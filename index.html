@@ -1922,8 +1922,20 @@ async function showClearScreen() {
   const entries = wasDaily
     ? await fetchDailyLeaderboard(puzzleDate, currentDiff)
     : await fetchDifficultyLeaderboard(currentDiff, 'alltime');
-  const rank = entries.filter(e => e.score > score).length + 1;
-  const total = entries.length + 1;
+  const pid = getPlayerId();
+  const myExisting = entries.find(e => e.player_id === pid);
+  const isNewBest = !myExisting || score > myExisting.score;
+
+  // Calculate rank: if new best, insert into ranking; otherwise show existing rank
+  let rank, total;
+  if (isNewBest) {
+    const otherEntries = myExisting ? entries.filter(e => e.player_id !== pid) : entries;
+    rank = otherEntries.filter(e => e.score > score).length + 1;
+    total = otherEntries.length + 1;
+  } else {
+    rank = entries.findIndex(e => e.player_id === pid) + 1;
+    total = entries.length;
+  }
 
   document.getElementById('modal-rank').textContent = '#' + rank;
   document.getElementById('modal-rank-stat').style.display = '';
@@ -1934,27 +1946,31 @@ async function showClearScreen() {
   if (rank <= 3) banner.classList.add('top3');
   banner.classList.remove('hidden');
 
-  // Save section: nickname input + save button
-  const saveNameInput = document.getElementById('save-name');
-  const saveBtn = document.getElementById('save-btn');
-  const savedName = getPlayerName();
-  saveNameInput.value = savedName === 'Player' ? '' : savedName;
-  saveNameInput.placeholder = 'Player';
-  const saveLbl = S.saveToLeaderboard || 'Save to Leaderboard';
-  saveBtn.textContent = saveLbl;
-  saveBtn.disabled = false;
-  saveBtn.classList.remove('saved');
-  document.getElementById('save-section').style.display = '';
+  // Save section: only show if this is a new best score
+  const saveSection = document.getElementById('save-section');
+  if (isNewBest) {
+    const saveNameInput = document.getElementById('save-name');
+    const saveBtn = document.getElementById('save-btn');
+    const savedName = getPlayerName();
+    saveNameInput.value = savedName === 'Player' ? '' : savedName;
+    saveNameInput.placeholder = 'Player';
+    saveBtn.textContent = S.saveToLeaderboard || 'Save to Leaderboard';
+    saveBtn.disabled = false;
+    saveBtn.classList.remove('saved');
+    saveSection.style.display = '';
 
-  saveBtn.onclick = async () => {
-    const name = saveNameInput.value.trim().slice(0, 20) || 'Player';
-    setPlayerName(name);
-    saveBtn.disabled = true;
-    saveBtn.textContent = '...';
-    await submitScore(currentDiff, secs, wasDaily, puzzleDate);
-    saveBtn.textContent = S.saved || '✓ Saved!';
-    saveBtn.classList.add('saved');
-  };
+    saveBtn.onclick = async () => {
+      const name = saveNameInput.value.trim().slice(0, 20) || 'Player';
+      setPlayerName(name);
+      saveBtn.disabled = true;
+      saveBtn.textContent = '...';
+      await submitScore(currentDiff, secs, wasDaily, puzzleDate);
+      saveBtn.textContent = S.saved || '✓ Saved!';
+      saveBtn.classList.add('saved');
+    };
+  } else {
+    saveSection.style.display = 'none';
+  }
 
   document.getElementById('share-preview').innerHTML =
     shareText.replace(/\n/g, '<br>');
