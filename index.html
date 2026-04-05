@@ -712,6 +712,7 @@
       <div class="stat"><div class="stat-num" id="modal-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
       <div class="stat" id="modal-rank-stat" style="display:none;"><div class="stat-num" id="modal-rank">—</div><div class="stat-lbl">Rank</div></div>
     </div>
+    <div class="challenge-banner hidden" id="challenge-banner"></div>
     <div class="rank-banner hidden" id="rank-banner"></div>
     <div class="save-section" id="save-section">
       <input type="text" id="save-name" class="save-name-input" maxlength="20" placeholder="Player">
@@ -2093,11 +2094,12 @@ async function showClearScreen() {
 
   const shareText = buildShareText(puzzleNum, diff.label, secs, hintsUsed, streak, hintMask, diff.size);
 
-  // Save daily completion
+  // Save daily completion (separate keys for classic vs challenge)
   if (wasDaily) {
-    const key = 'cagey_daily_' + new Date().toISOString().slice(0, 10);
-    localStorage.setItem(key, '1');
-    localStorage.setItem(key + '_share', shareText);
+    const today = new Date().toISOString().slice(0, 10);
+    const prefix = currentGameMode === 'challenge' ? 'cagey_challenge_daily_' : 'cagey_daily_';
+    localStorage.setItem(prefix + today, '1');
+    localStorage.setItem(prefix + today + '_share', shareText);
   }
   isDailyMode = false;
 
@@ -2138,6 +2140,16 @@ async function showClearScreen() {
   banner.textContent = medal + tpl.replace('{total}', total).replace('{rank}', rank);
   if (rank <= 3) banner.classList.add('top3');
   banner.classList.remove('hidden');
+
+  // Challenge mode completion banner
+  const challengeBanner = document.getElementById('challenge-banner');
+  if (currentGameMode === 'challenge' && challengeInventory) {
+    const S2 = window.CAGEY_STRINGS || {};
+    challengeBanner.textContent = S2.inventoryCleared || '\uD83D\uDCE6 Inventory cleared!';
+    challengeBanner.classList.remove('hidden');
+  } else {
+    challengeBanner.classList.add('hidden');
+  }
 
   // Save section: only show if this is a new best score
   const saveSection = document.getElementById('save-section');
@@ -2291,9 +2303,11 @@ let dailyAlreadySolved = false;
 
 async function startDailyChallenge() {
   const { puzzleNum: num, diff, seed } = getDailyInfo();
+  const isChallenge = currentGameMode === 'challenge';
 
-  // Check if already solved today
-  const key = 'cagey_daily_' + new Date().toISOString().slice(0, 10);
+  // Check if already solved today (separate keys for classic vs challenge)
+  const today = new Date().toISOString().slice(0, 10);
+  const key = isChallenge ? 'cagey_challenge_daily_' + today : 'cagey_daily_' + today;
   const solved = localStorage.getItem(key);
 
   isDailyMode = true;
@@ -2310,8 +2324,17 @@ async function startDailyChallenge() {
 
   if (diff === 'expert' && !expertBundle) await loadExpertBundle();
 
-  let puzzle = generate(diff, seed);
-  if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
+  let puzzle;
+  if (isChallenge) {
+    puzzle = generateChallengePuzzle(diff, seed);
+    if (!puzzle && diff === 'expert') {
+      const fb = getExpertFallback();
+      if (fb) puzzle = { ...fb, inventory: generateChallengeInventory(fb.solution, fb.size), gameMode: 'challenge' };
+    }
+  } else {
+    puzzle = generate(diff, seed);
+    if (!puzzle && diff === 'expert') puzzle = getExpertFallback();
+  }
   if (!puzzle) {
     document.getElementById('loading').classList.add('hidden');
     showToast('Could not load daily puzzle.');
@@ -2324,8 +2347,18 @@ async function startDailyChallenge() {
   cageMap = getCageMap(puzzle);
   createState(puzzle);
 
+  // Set up challenge inventory if in challenge mode
+  if (isChallenge && puzzle.inventory) {
+    challengeInventory = puzzle.inventory;
+    inventoryUsed = initInventoryUsed(puzzle.size);
+  } else {
+    challengeInventory = null;
+    inventoryUsed = null;
+  }
+
   renderGrid(puzzle, cageBorders, { grid });
   renderNumpad(puzzle.size);
+  updateNumpadState();
   document.getElementById('hint-count').textContent = `(${MAX_HINTS} left)`;
   document.getElementById('hint-btn').style.opacity = '1';
   document.getElementById('hint-btn').disabled = false;
@@ -2336,9 +2369,9 @@ async function startDailyChallenge() {
     gameComplete = true;
     clearInterval(timerInterval);
     document.getElementById('grid-wrap').style.opacity = '0.5';
-    document.getElementById('timer').textContent = '✓ Done';
+    document.getElementById('timer').textContent = '\u2713 Done';
     document.getElementById('loading').classList.add('hidden');
-    showToast('Already solved today!');
+    showToast(isChallenge ? 'Challenge daily already solved!' : 'Already solved today!');
     return;
   }
 
