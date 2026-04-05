@@ -31,6 +31,7 @@ const getArg = (name, def) => {
 };
 const DAILY_DAYS = getArg('days', 365);
 const PRACTICE_PER_DIFF = getArg('practice', 200);
+const CHALLENGE_PER_DIFF = getArg('challenge', 100);
 
 // ── Helpers ─────────────────────────────────────────────────
 function mkdirp(dir) {
@@ -71,6 +72,11 @@ function getDailyInfo(dateStr) {
 // Practice puzzle seed (deterministic)
 function getPracticeSeed(diffIndex, puzzleNum) {
   return diffIndex * 1000 + puzzleNum;
+}
+
+// Challenge puzzle seed (deterministic, different range from practice)
+function getChallengeSeed(diffIndex, puzzleNum) {
+  return 50000 + diffIndex * 1000 + puzzleNum;
 }
 
 // Format date for display
@@ -321,6 +327,11 @@ function buildArchiveBody(locale, strings, meta, dailyInfos) {
     return `<a href="/${locale}/practice/${d}/001" class="archive-practice-link">${escHtml(label)}</a>`;
   }).join('\n');
 
+  const challengeLinks = DIFFICULTIES.map(d => {
+    const label = diffLabels[d] || d;
+    return `<a href="/${locale}/challenge/${d}/001" class="archive-practice-link" style="border-color:#f59e0b;color:#92400e;">\uD83D\uDD12 ${escHtml(label)}</a>`;
+  }).join('\n');
+
   return `
 <style>
   .archive-wrap { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
@@ -345,6 +356,11 @@ function buildArchiveBody(locale, strings, meta, dailyInfos) {
   <div class="archive-section">
     <div class="archive-section-title">${escHtml(strings.practice || 'Practice')}</div>
     <div>${practiceLinks}</div>
+  </div>
+
+  <div class="archive-section">
+    <div class="archive-section-title">\uD83D\uDD12 ${escHtml(strings.challenge || 'Challenge')}</div>
+    <div>${challengeLinks}</div>
   </div>
 
   <div class="archive-section">
@@ -502,6 +518,15 @@ ${hreflangs}
     }
   }
 
+  // Challenge puzzles
+  for (let di = 0; di < DIFFICULTIES.length; di++) {
+    const diff = DIFFICULTIES[di];
+    for (let n = 1; n <= CHALLENGE_PER_DIFF; n++) {
+      const num = String(n).padStart(3, '0');
+      addUrl(`/challenge/${diff}/${num}`, 'never', '0.5');
+    }
+  }
+
   // Static pages
   addUrl('/how-to-play', 'monthly', '0.8');
   addUrl('/archive', 'daily', '0.6');
@@ -543,6 +568,7 @@ function build() {
   console.log(`  Locales: ${LOCALES.join(', ')}`);
   console.log(`  Daily puzzles: ${DAILY_DAYS} days`);
   console.log(`  Practice puzzles: ${PRACTICE_PER_DIFF} per difficulty × ${DIFFICULTIES.length} = ${PRACTICE_PER_DIFF * DIFFICULTIES.length}`);
+  console.log(`  Challenge puzzles: ${CHALLENGE_PER_DIFF} per difficulty × ${DIFFICULTIES.length} = ${CHALLENGE_PER_DIFF * DIFFICULTIES.length}`);
 
   // Clean dist
   if (fs.existsSync(DIST)) {
@@ -624,6 +650,32 @@ function build() {
         mkdirp(path.join(DIST, locale, 'practice', diff, num));
         fs.writeFileSync(path.join(DIST, locale, 'practice', diff, num, 'index.html'), html);
         pageCount++;
+      }
+    }
+
+    // ── Challenge puzzle pages ──
+    if (meta.challengeTitle) {
+      for (let di = 0; di < DIFFICULTIES.length; di++) {
+        const diff = DIFFICULTIES[di];
+        const diffLabel = strings[diff] || diff;
+        for (let n = 1; n <= CHALLENGE_PER_DIFF; n++) {
+          const num = String(n).padStart(3, '0');
+          const seed = getChallengeSeed(di, n);
+          const title = meta.challengeTitle.replace('{difficulty}', diffLabel).replace('{num}', num);
+          const desc = meta.challengeDesc.replace('{difficulty}', diffLabel).replace('{num}', num);
+          const pagePath = `/challenge/${diff}/${num}`;
+          const html = buildGamePage(template, locale, strings, meta, {
+            title,
+            description: desc,
+            canonicalUrl: `${SITE_URL}/${locale}${pagePath}`,
+            pagePath,
+            pageType: 'challenge',
+            pageData: { type: 'challenge', seed, diff, puzzleNum: n, locale }
+          });
+          mkdirp(path.join(DIST, locale, 'challenge', diff, num));
+          fs.writeFileSync(path.join(DIST, locale, 'challenge', diff, num, 'index.html'), html);
+          pageCount++;
+        }
       }
     }
 

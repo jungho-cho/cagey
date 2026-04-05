@@ -9,6 +9,8 @@
   "archiveDesc": "Explore todos os puzzles diários anteriores do Cagey. Jogue qualquer puzzle que você perdeu. Puzzle matemático online grátis.",
   "howToPlayTitle": "Como jogar Cagey — Regras e estratégias",
   "howToPlayDesc": "Aprenda a resolver os puzzles de gaiolas do Cagey. Regras passo a passo, estratégias e dicas para todos os níveis. Puzzle matemático online grátis.",
+  "challengeTitle": "Cagey 🔒 Desafio — {difficulty} #{num} — Estoque Limitado",
+  "challengeDesc": "Resolva este puzzle com estoque limitado de números! Nível {difficulty}, puzzle #{num}. Puzzle matemático online grátis.",
   "404Title": "Puzzle não encontrado — Cagey",
   "404Desc": "Este puzzle ainda não existe. Jogue o puzzle diário de hoje ou explore o arquivo."
 }

@@ -2608,7 +2608,7 @@ async function loadSeededPuzzle(diff, seed) {
 
 if (window.CAGEY_PAGE) {
   const pg = window.CAGEY_PAGE;
-  if (pg.type === 'daily' || pg.type === 'practice') {
+  if (pg.type === 'daily' || pg.type === 'practice' || pg.type === 'challenge') {
     localStorage.setItem('cagey_visited', '1');
     isDailyMode = pg.type === 'daily';
     puzzleNum = pg.puzzleNum;
@@ -2622,7 +2622,18 @@ if (window.CAGEY_PAGE) {
       });
     }
     updateDifficultyDesc(pg.diff);
-    loadSeededPuzzle(pg.diff, pg.seed);
+    if (pg.type === 'challenge') {
+      // Activate challenge mode for SEO pages
+      currentGameMode = 'challenge';
+      document.querySelectorAll('.mode-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.mode === 'challenge');
+      });
+      const main = document.querySelector('main');
+      if (main) main.classList.add('challenge-active');
+      newChallengePuzzle(pg.diff);
+    } else {
+      loadSeededPuzzle(pg.diff, pg.seed);
+    }
   } else {
     startGame();
   }

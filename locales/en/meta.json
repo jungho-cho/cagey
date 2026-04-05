@@ -9,6 +9,8 @@
   "archiveDesc": "Browse all past Cagey daily cage puzzles. Play any puzzle you missed. Free online math puzzle game.",
   "howToPlayTitle": "How to Play Cagey — Cage Puzzle Rules & Strategy",
   "howToPlayDesc": "Learn how to solve Cagey cage puzzles. Step-by-step rules, strategies, and tips for all difficulty levels. Free online math puzzle game.",
+  "challengeTitle": "Cagey 🔒 Challenge — {difficulty} #{num} — Limited Inventory Puzzle",
+  "challengeDesc": "Solve this cage puzzle with limited number inventory! Each digit has a fixed supply. {difficulty} level, puzzle #{num}. Free online math puzzle.",
   "404Title": "Puzzle Not Found — Cagey",
   "404Desc": "This puzzle doesn't exist yet. Play today's daily puzzle or browse the archive."
 }

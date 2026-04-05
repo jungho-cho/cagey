@@ -9,6 +9,8 @@
   "archiveDesc": "Durchstöbere alle bisherigen Cagey-Tagesrätsel. Spiele jedes verpasste Rätsel nach. Kostenloses Online-Matherätsel.",
   "howToPlayTitle": "Cagey Spielanleitung — Käfig-Rätsel Regeln & Strategien",
   "howToPlayDesc": "Lerne, wie man Cagey-Käfig-Rätsel löst. Regeln, Strategien und Tipps für alle Schwierigkeitsgrade. Kostenloses Online-Matherätsel.",
+  "challengeTitle": "Cagey 🔒 Challenge — {difficulty} #{num} — Begrenzter Vorrat",
+  "challengeDesc": "Löse dieses Käfig-Rätsel mit begrenztem Zahlenvorrat! {difficulty}-Level, Rätsel #{num}. Kostenloses Online-Mathe-Puzzle.",
   "404Title": "Rätsel nicht gefunden — Cagey",
   "404Desc": "Dieses Rätsel gibt es noch nicht. Spiele das heutige Tagesrätsel oder durchstöbere das Archiv."
 }
