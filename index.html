@@ -2280,6 +2280,11 @@ function getExpertFallback() {
 async function newPuzzle(diff) {
   isDailyMode = false;
   currentDiff = diff;
+  currentGameMode = 'classic';
+  challengeInventory = null;
+  inventoryUsed = null;
+  const patternRow = document.getElementById('pattern-row');
+  if (patternRow) patternRow.classList.add('hidden');
 
   // Update difficulty chips
   document.querySelectorAll('.diff-chip').forEach(c => {
