@@ -8,7 +8,8 @@
     "build": "node scripts/build-pages.js",
     "build:quick": "node scripts/build-pages.js --days 30 --practice 10",
     "benchmark": "node scripts/benchmark.js",
-    "test": "node -e \"require('./src/solver'); require('./src/generator'); console.log('imports ok');\""
+    "test": "node --test test/*.test.mjs",
+    "test:legacy": "node -e \"require('./src/solver'); require('./src/generator'); console.log('imports ok');\""
   },
   "keywords": ["cage puzzle", "math puzzle", "kenken"],
   "license": "MIT"
