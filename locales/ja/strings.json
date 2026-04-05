@@ -48,5 +48,9 @@
   "rankMsg": "{total}人中 {rank}位",
   "rankMsgTop": "{total}人中 {rank}位!",
   "saveToLeaderboard": "ランキングに保存",
-  "saved": "✓ 保存済み!"
+  "saved": "✓ 保存済み!",
+  "classic": "クラシック",
+  "challenge": "🔒 チャレンジ",
+  "inventoryCleared": "📦 在庫クリア！",
+  "challengeDesc": "同じパズル、数字に制限あり！各数字には在庫があります。賢く使いましょう。"
 }

@@ -48,5 +48,9 @@
   "rankMsg": "{rank} de {total}",
   "rankMsgTop": "{rank} de {total}!",
   "saveToLeaderboard": "Salvar no ranking",
-  "saved": "✓ Salvo!"
+  "saved": "✓ Salvo!",
+  "classic": "Clássico",
+  "challenge": "🔒 Desafio",
+  "inventoryCleared": "📦 Estoque esgotado!",
+  "challengeDesc": "Mesmo puzzle, números limitados! Cada dígito tem um estoque fixo. Use-os com sabedoria."
 }

@@ -48,5 +48,9 @@
   "rankMsg": "Platz {rank} von {total}",
   "rankMsgTop": "Platz {rank} von {total}!",
   "saveToLeaderboard": "Speichern",
-  "saved": "✓ Gespeichert!"
+  "saved": "✓ Gespeichert!",
+  "classic": "Klassisch",
+  "challenge": "🔒 Challenge",
+  "inventoryCleared": "📦 Vorrat aufgebraucht!",
+  "challengeDesc": "Gleiches Rätsel, begrenzte Zahlen! Jede Ziffer hat einen festen Vorrat. Setze sie klug ein."
 }

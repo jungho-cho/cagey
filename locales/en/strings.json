@@ -48,5 +48,9 @@
   "rankMsg": "#{rank} of {total}",
   "rankMsgTop": "#{rank} of {total}!",
   "saveToLeaderboard": "Save to Leaderboard",
-  "saved": "✓ Saved!"
+  "saved": "✓ Saved!",
+  "classic": "Classic",
+  "challenge": "🔒 Challenge",
+  "inventoryCleared": "📦 Inventory cleared!",
+  "challengeDesc": "Same puzzle, limited numbers! Each digit has a fixed inventory. Use them wisely."
 }

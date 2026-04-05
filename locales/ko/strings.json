@@ -48,5 +48,9 @@
   "rankMsg": "{total}명 중 {rank}등",
   "rankMsgTop": "{total}명 중 {rank}등!",
   "saveToLeaderboard": "리더보드에 저장",
-  "saved": "✓ 저장됨!"
+  "saved": "✓ 저장됨!",
+  "classic": "클래식",
+  "challenge": "🔒 챌린지",
+  "inventoryCleared": "📦 재고 소진!",
+  "challengeDesc": "같은 퍼즐, 제한된 숫자! 각 숫자에 정해진 재고가 있습니다. 현명하게 사용하세요."
 }

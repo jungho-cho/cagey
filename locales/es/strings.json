@@ -48,5 +48,9 @@
   "rankMsg": "{rank} de {total}",
   "rankMsgTop": "{rank} de {total}!",
   "saveToLeaderboard": "Guardar en ranking",
-  "saved": "✓ Guardado!"
+  "saved": "✓ Guardado!",
+  "classic": "Clásico",
+  "challenge": "🔒 Desafío",
+  "inventoryCleared": "📦 ¡Inventario agotado!",
+  "challengeDesc": "Mismo puzle, números limitados. Cada dígito tiene un inventario fijo. Úsalos sabiamente."
 }

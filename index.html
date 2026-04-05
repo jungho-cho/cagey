@@ -98,6 +98,10 @@
     --selected-border: #2563eb;
     --hint-bg: #fef3c7;
     --hint-border: #f59e0b;
+    --challenge: #f59e0b;
+    --challenge-bg: #fef3c7;
+    --challenge-active: #d97706;
+    --challenge-text: #92400e;
   }
 
   body {
@@ -191,6 +195,77 @@
   }
   .diff-chip.daily.active {
     border-color: #d97706; background: #fde68a; color: #78350f;
+  }
+
+  /* ── Mode tabs (Classic / Challenge) ── */
+  .mode-row {
+    display: flex; gap: 6px; margin-bottom: 6px;
+  }
+  .mode-tab {
+    font-size: 13px; padding: 6px 16px;
+    border: 1.5px solid var(--border); border-radius: 20px;
+    cursor: pointer; color: var(--muted); background: var(--surface);
+    user-select: none; transition: border-color .15s, color .15s, background .2s;
+    font-weight: 500;
+  }
+  .mode-tab.active {
+    border-color: var(--accent); color: var(--accent); font-weight: 600;
+  }
+  .mode-tab.challenge.active {
+    border-color: var(--challenge-active); background: var(--challenge-bg);
+    color: var(--challenge-text); font-weight: 600;
+  }
+  /* When challenge mode is active, difficulty chips use amber theme */
+  .challenge-active .diff-chip.active {
+    border-color: var(--challenge-active); color: var(--challenge-active);
+  }
+
+  /* ── Inventory count on numpad keys ── */
+  .num-key .key-count {
+    font-size: 11px; color: var(--muted); line-height: 1; margin-top: 1px;
+  }
+  .num-key .key-count.low {
+    color: var(--red); font-weight: 600;
+  }
+  .num-key .key-count.zero {
+    color: var(--red); opacity: 0.3;
+  }
+  .num-key.depleted {
+    opacity: 0.3; pointer-events: none;
+  }
+
+  /* ── Inventory count change animation ── */
+  @keyframes countPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  .num-key .key-count.pulse {
+    animation: countPulse .2s ease;
+  }
+
+  /* ── Depleted key shake ── */
+  @keyframes keyShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-3px); }
+    40% { transform: translateX(3px); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+  }
+  .num-key.shake {
+    animation: keyShake .3s ease;
+  }
+
+  /* ── Challenge completion banner ── */
+  .challenge-banner {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 1px solid var(--challenge);
+    border-radius: 12px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--challenge-text);
   }
 
   /* ── Grid ── */
@@ -596,6 +671,10 @@
 </header>
 
 <main>
+  <div class="mode-row" id="mode-row">
+    <div class="mode-tab active" data-mode="classic">Classic</div>
+    <div class="mode-tab challenge" data-mode="challenge">🔒 Challenge</div>
+  </div>
   <div class="diff-row" id="diff-row">
     <div class="diff-chip daily" data-diff="daily">🔥 Daily</div>
     <div class="diff-chip active" data-diff="easy">Easy</div>
@@ -834,6 +913,7 @@ async function submitScore(difficulty, solveTimeSeconds, isDaily, puzzleDate) {
       p_puzzle_date: puzzleDate || 'free',
       p_solve_time_seconds: solveTimeSeconds,
       p_score: score,
+      p_game_mode: currentGameMode || 'classic',
     });
   } catch (e) { console.error('Score submit failed:', e); }
 }
@@ -841,7 +921,7 @@ async function submitScore(difficulty, solveTimeSeconds, isDaily, puzzleDate) {
 async function fetchDailyLeaderboard(date, difficulty) {
   if (!_sb) return [];
   try {
-    const { data } = await _sb.rpc('get_daily_leaderboard', { p_date: date, p_difficulty: difficulty || 'medium', p_limit: 20 });
+    const { data } = await _sb.rpc('get_daily_leaderboard', { p_date: date, p_difficulty: difficulty || 'medium', p_limit: 20, p_game_mode: currentGameMode || 'classic' });
     return data || [];
   } catch (e) { return []; }
 }
@@ -850,7 +930,7 @@ async function fetchDifficultyLeaderboard(difficulty, period) {
   if (!_sb) return [];
   try {
     const { data } = await _sb.rpc('get_difficulty_leaderboard', {
-      p_difficulty: difficulty, p_period: period, p_limit: 30
+      p_difficulty: difficulty, p_period: period, p_limit: 30, p_game_mode: currentGameMode || 'classic'
     });
     return data || [];
   } catch (e) { return []; }
@@ -860,7 +940,7 @@ async function fetchPlayerDiffRank(difficulty, period) {
   if (!_sb) return null;
   try {
     const { data } = await _sb.rpc('get_player_difficulty_rank', {
-      p_player_id: getPlayerId(), p_difficulty: difficulty, p_period: period
+      p_player_id: getPlayerId(), p_difficulty: difficulty, p_period: period, p_game_mode: currentGameMode || 'classic'
     });
     return data && data[0] ? data[0] : null;
   } catch (e) { return null; }
@@ -869,7 +949,7 @@ async function fetchPlayerDiffRank(difficulty, period) {
 async function fetchPlayerRank(date, difficulty) {
   if (!_sb) return null;
   try {
-    const { data } = await _sb.rpc('get_player_daily_rank', { p_player_id: getPlayerId(), p_date: date, p_difficulty: difficulty || 'medium' });
+    const { data } = await _sb.rpc('get_player_daily_rank', { p_player_id: getPlayerId(), p_date: date, p_difficulty: difficulty || 'medium', p_game_mode: currentGameMode || 'classic' });
     return data && data[0] ? data[0] : null;
   } catch (e) { return null; }
 }
@@ -1356,6 +1436,49 @@ function generate(difficulty, seed) {
 }
 
 /* ─────────────────────────────────────────
+   CHALLENGE MODE — Inventory Generation
+───────────────────────────────────────── */
+function generateChallengeInventory(solution, size) {
+  // Exact pattern: inventory = count of each digit in solution
+  const inv = {};
+  for (let v = 1; v <= size; v++) inv[v] = 0;
+  for (const v of solution) inv[v] = (inv[v] || 0) + 1;
+  return inv;
+}
+
+function generateChallengePuzzle(difficulty, seed) {
+  const puzzle = generate(difficulty, seed);
+  if (!puzzle) return null;
+  const inventory = generateChallengeInventory(puzzle.solution, puzzle.size);
+  return { ...puzzle, inventory, gameMode: 'challenge' };
+}
+
+function canPlaceInventory(value) {
+  if (value === 0 || !challengeInventory) return true;
+  const used = (inventoryUsed && inventoryUsed[value]) || 0;
+  return used < (challengeInventory[value] || 0);
+}
+
+function getInventoryRemaining(value) {
+  if (!challengeInventory) return Infinity;
+  return (challengeInventory[value] || 0) - ((inventoryUsed && inventoryUsed[value]) || 0);
+}
+
+function initInventoryUsed(size) {
+  const u = {};
+  for (let v = 1; v <= size; v++) u[v] = 0;
+  return u;
+}
+
+function rebuildInventoryUsed() {
+  if (!currentPuzzle || currentGameMode !== 'challenge') return;
+  inventoryUsed = initInventoryUsed(currentPuzzle.size);
+  for (const v of grid) {
+    if (v !== 0) inventoryUsed[v] = (inventoryUsed[v] || 0) + 1;
+  }
+}
+
+/* ─────────────────────────────────────────
    DAILY CHALLENGE
 ───────────────────────────────────────── */
 const DIFFS = ['easy', 'medium', 'hard', 'expert'];
@@ -1430,7 +1553,17 @@ function buildShareText(puzzleNum, diffLabel, timeSecs, hintsUsed, streak, hintM
   if (pg && pg.type === 'daily' && pg.date) {
     url = `playcagey.com/${locale}/daily/${pg.date}`;
   }
-  return `Cagey #${puzzleNum} [${diffLabel}] ✓ ${timeStr}\n${emojiGrid}\n${hintStr} · ${streak}🔥\n${url}`;
+  // Challenge mode: add mode label and inventory summary
+  const modeLabel = currentGameMode === 'challenge' ? '\uD83D\uDD12Challenge ' : '';
+  let invLine = '';
+  if (currentGameMode === 'challenge' && challengeInventory) {
+    const invParts = [];
+    for (let v = 1; v <= size; v++) {
+      if (challengeInventory[v]) invParts.push(`${v}\u00D7${challengeInventory[v]}`);
+    }
+    invLine = `\uD83D\uDCE6 ${invParts.join(' ')} \u00B7 `;
+  }
+  return `Cagey #${puzzleNum} ${modeLabel}[${diffLabel}] \u2713 ${timeStr}\n${emojiGrid}\n${invLine}${hintStr} \u00B7 ${streak}\uD83D\uDD25\n${url}`;
 }
 
 /* ─────────────────────────────────────────
@@ -1553,14 +1686,36 @@ function renderNumpad(size) {
   for (let v = 1; v <= size; v++) {
     const btn = document.createElement('div');
     btn.className = 'num-key';
-    btn.textContent = v;
     btn.dataset.val = v;
+    if (currentGameMode === 'challenge' && challengeInventory) {
+      // Challenge mode: show number + remaining count inside key
+      btn.style.display = 'flex';
+      btn.style.flexDirection = 'column';
+      btn.style.alignItems = 'center';
+      btn.style.justifyContent = 'center';
+      const valSpan = document.createElement('span');
+      valSpan.textContent = v;
+      valSpan.style.fontSize = '18px';
+      valSpan.style.fontWeight = '700';
+      valSpan.style.lineHeight = '1';
+      btn.appendChild(valSpan);
+      const countSpan = document.createElement('span');
+      countSpan.className = 'key-count';
+      countSpan.dataset.val = v;
+      const rem = getInventoryRemaining(v);
+      countSpan.textContent = '\u00D7' + rem;
+      if (rem === 0) { countSpan.classList.add('zero'); btn.classList.add('depleted'); }
+      else if (rem === 1) countSpan.classList.add('low');
+      btn.appendChild(countSpan);
+    } else {
+      btn.textContent = v;
+    }
     btn.addEventListener('click', () => handleNumKey(v));
     pad.appendChild(btn);
   }
   const del = document.createElement('div');
   del.className = 'num-key del';
-  del.textContent = '⌫';
+  del.textContent = '\u232B';
   del.addEventListener('click', () => handleNumKey(0));
   pad.appendChild(del);
 }
@@ -1576,6 +1731,10 @@ let puzzleNum = 1;
 let timerStart = null;
 let timerInterval = null;
 let hintsUsed = 0;
+// Challenge mode state
+let currentGameMode = 'classic'; // 'classic' | 'challenge'
+let challengeInventory = null;   // { 1: N, 2: M, ... }
+let inventoryUsed = null;        // { 1: N, 2: M, ... }
 let hintMask = [];
 let gameComplete = false;
 const UNDO_LIMIT = 50;
@@ -1726,6 +1885,9 @@ function saveProgress() {
       diff: currentDiff, grid, hintMask, hintsUsed, undoStack,
       puzzleNum, isDailyMode, elapsed: getElapsedSecs(),
       savedDate: new Date().toISOString().slice(0, 10),
+      gameMode: currentGameMode,
+      challengeInventory: currentGameMode === 'challenge' ? challengeInventory : undefined,
+      inventoryUsed: currentGameMode === 'challenge' ? inventoryUsed : undefined,
       puzzle: { size: currentPuzzle.size, cages: currentPuzzle.cages, solution: currentPuzzle.solution }
     }));
   } catch {}
@@ -1753,10 +1915,33 @@ function handleNumKey(val) {
   if (selectedCell < 0 || gameComplete) return;
   if (hintMask[selectedCell]) return;
 
+  // Challenge mode: check inventory before placing
+  if (currentGameMode === 'challenge' && val !== 0 && !canPlaceInventory(val)) {
+    // Shake the depleted key
+    const keyEl = document.querySelector(`.num-key[data-val="${val}"]`);
+    if (keyEl) {
+      keyEl.classList.remove('shake');
+      void keyEl.offsetWidth;
+      keyEl.classList.add('shake');
+      const countEl = keyEl.querySelector('.key-count');
+      if (countEl) { countEl.style.color = 'var(--red)'; setTimeout(() => { countEl.style.color = ''; }, 300); }
+    }
+    return;
+  }
+
+  const prevVal = grid[selectedCell];
   const prevStatus = getCageStatus(currentPuzzle, cageMap, cageMap[selectedCell]);
 
-  undoStack.push({ idx: selectedCell, prev: grid[selectedCell] });
+  undoStack.push({ idx: selectedCell, prev: prevVal });
   if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+
+  // Challenge mode: update inventory counts
+  if (currentGameMode === 'challenge' && inventoryUsed) {
+    if (prevVal !== 0) inventoryUsed[prevVal]--;
+    if (val !== 0) inventoryUsed[val]++;
+    updateNumpadInventory();
+  }
+
   grid[selectedCell] = val;
 
   // Sound: cell place
@@ -1798,6 +1983,13 @@ function handleNumKey(val) {
 function handleUndo() {
   if (undoStack.length === 0 || gameComplete) return;
   const { idx, prev } = undoStack.pop();
+  // Challenge mode: restore inventory
+  if (currentGameMode === 'challenge' && inventoryUsed) {
+    const current = grid[idx];
+    if (current !== 0) inventoryUsed[current]--;
+    if (prev !== 0) inventoryUsed[prev]++;
+    updateNumpadInventory();
+  }
   grid[idx] = prev;
   const ci = cageMap[idx];
   currentPuzzle.cages[ci].cells.forEach(i => updateCellDisplay(i));
@@ -2155,6 +2347,104 @@ async function startDailyChallenge() {
 }
 
 /* ─────────────────────────────────────────
+   CHALLENGE MODE — UI helpers
+───────────────────────────────────────── */
+function updateNumpadInventory() {
+  if (currentGameMode !== 'challenge' || !challengeInventory) return;
+  const size = currentPuzzle ? currentPuzzle.size : 4;
+  for (let v = 1; v <= size; v++) {
+    const btn = document.querySelector(`.num-key[data-val="${v}"]`);
+    if (!btn) continue;
+    const countEl = btn.querySelector('.key-count');
+    if (!countEl) continue;
+    const rem = getInventoryRemaining(v);
+    const prevText = countEl.textContent;
+    countEl.textContent = '\u00D7' + rem;
+    countEl.classList.remove('low', 'zero');
+    btn.classList.remove('depleted');
+    if (rem === 0) { countEl.classList.add('zero'); btn.classList.add('depleted'); }
+    else if (rem === 1) countEl.classList.add('low');
+    // Pulse animation on change
+    if (prevText !== countEl.textContent) {
+      countEl.classList.remove('pulse');
+      void countEl.offsetWidth;
+      countEl.classList.add('pulse');
+    }
+  }
+}
+
+function switchGameMode(mode) {
+  if (mode === currentGameMode) return;
+  currentGameMode = mode;
+  // Update mode tabs
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  // Toggle amber theme on diff row
+  const main = document.querySelector('main');
+  if (main) main.classList.toggle('challenge-active', mode === 'challenge');
+  // Start a new puzzle in the selected mode
+  if (mode === 'challenge') {
+    newChallengePuzzle(currentDiff);
+  } else {
+    challengeInventory = null;
+    inventoryUsed = null;
+    newPuzzle(currentDiff);
+  }
+}
+
+async function newChallengePuzzle(diff) {
+  currentDiff = diff;
+  currentGameMode = 'challenge';
+  isDailyMode = false;
+
+  document.querySelectorAll('.diff-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.diff === diff);
+  });
+  updateDifficultyDesc(diff);
+
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('timer').textContent = '0:00';
+  await new Promise(r => setTimeout(r, 50));
+
+  if (diff === 'expert' && !expertBundle) await loadExpertBundle();
+
+  let puzzle = generateChallengePuzzle(diff);
+  if (!puzzle && diff === 'expert') {
+    const fallback = getExpertFallback();
+    if (fallback) {
+      puzzle = { ...fallback, inventory: generateChallengeInventory(fallback.solution, fallback.size), gameMode: 'challenge' };
+    }
+  }
+  if (!puzzle) {
+    document.getElementById('loading').classList.add('hidden');
+    showToast('Could not generate puzzle. Try again.');
+    return;
+  }
+
+  clearProgress();
+  currentPuzzle = puzzle;
+  challengeInventory = puzzle.inventory;
+  inventoryUsed = initInventoryUsed(puzzle.size);
+  cageBorders = computeCellBorders(puzzle);
+  cageMap = getCageMap(puzzle);
+  createState(puzzle);
+
+  document.getElementById('grid-wrap').style.opacity = '1';
+  renderGrid(puzzle, cageBorders, { grid });
+  renderNumpad(puzzle.size);
+  updateNumpadState();
+  document.getElementById('hint-count').textContent = `(${MAX_HINTS} left)`;
+  document.getElementById('hint-btn').style.opacity = '1';
+  document.getElementById('hint-btn').disabled = false;
+
+  puzzleNum = Math.floor(Math.random() * 9000) + 1;
+
+  startTimer();
+  document.getElementById('loading').classList.add('hidden');
+}
+
+/* ─────────────────────────────────────────
    KEYBOARD SUPPORT
 ───────────────────────────────────────── */
 document.addEventListener('keydown', e => {
@@ -2189,12 +2479,21 @@ document.querySelectorAll('.diff-chip:not(.daily)').forEach(chip => {
   chip.addEventListener('click', () => {
     if (!chip.classList.contains('active')) {
       isDailyMode = false;
-      newPuzzle(chip.dataset.diff);
+      if (currentGameMode === 'challenge') {
+        newChallengePuzzle(chip.dataset.diff);
+      } else {
+        newPuzzle(chip.dataset.diff);
+      }
     }
   });
 });
 document.querySelector('.diff-chip.daily').addEventListener('click', () => {
   startDailyChallenge();
+});
+
+// Mode tabs
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchGameMode(tab.dataset.mode));
 });
 
 // Show current streak in header badge (hide if 0)
@@ -2242,6 +2541,9 @@ function startGame() {
     currentPuzzle = saved.puzzle;
     puzzleNum = saved.puzzleNum || 1;
     isDailyMode = saved.isDailyMode || false;
+    currentGameMode = saved.gameMode || 'classic';
+    challengeInventory = saved.challengeInventory || null;
+    inventoryUsed = saved.inventoryUsed || null;
     cageBorders = computeCellBorders(currentPuzzle);
     cageMap = getCageMap(currentPuzzle);
     grid = saved.grid;
@@ -2250,6 +2552,12 @@ function startGame() {
     undoStack = saved.undoStack || [];
     gameComplete = false;
     selectedCell = -1;
+    // Restore mode tab UI
+    document.querySelectorAll('.mode-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.mode === currentGameMode);
+    });
+    const main = document.querySelector('main');
+    if (main) main.classList.toggle('challenge-active', currentGameMode === 'challenge');
 
     document.querySelectorAll('.diff-chip').forEach(c => {
       c.classList.toggle('active', c.dataset.diff === currentDiff);
