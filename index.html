@@ -2357,7 +2357,7 @@ async function startDailyChallenge() {
     puzzle = generateChallengePuzzle(diff, seed);
     if (!puzzle && diff === 'expert') {
       const fb = getExpertFallback();
-      if (fb) puzzle = { ...fb, inventory: generateChallengeInventory(fb.solution, fb.size), gameMode: 'challenge' };
+      if (fb) puzzle = { ...fb, inventory: generateChallengeInventory(fb.solution, fb.size, seed), pattern: currentChallengePattern, gameMode: 'challenge' };
     }
   } else {
     puzzle = generate(diff, seed);
@@ -2476,7 +2476,7 @@ async function newChallengePuzzle(diff) {
   if (!puzzle && diff === 'expert') {
     const fallback = getExpertFallback();
     if (fallback) {
-      puzzle = { ...fallback, inventory: generateChallengeInventory(fallback.solution, fallback.size), gameMode: 'challenge' };
+      puzzle = { ...fallback, inventory: generateChallengeInventory(fallback.solution, fallback.size, 0), pattern: currentChallengePattern, gameMode: 'challenge' };
     }
   }
   if (!puzzle) {
@@ -2633,6 +2633,8 @@ function startGame() {
     });
     const main = document.querySelector('main');
     if (main) main.classList.toggle('challenge-active', currentGameMode === 'challenge');
+    const patternRow = document.getElementById('pattern-row');
+    if (patternRow) patternRow.classList.toggle('hidden', currentGameMode !== 'challenge');
 
     document.querySelectorAll('.diff-chip').forEach(c => {
       c.classList.toggle('active', c.dataset.diff === currentDiff);
