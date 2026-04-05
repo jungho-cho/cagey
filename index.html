@@ -215,8 +215,9 @@
     border-color: var(--challenge-active); background: var(--challenge-bg);
     color: var(--challenge-text); font-weight: 600;
   }
-  /* When challenge mode is active, difficulty chips use amber theme */
-  .challenge-active .diff-chip.active {
+  /* When challenge mode is active, difficulty + pattern chips use amber theme */
+  .challenge-active .diff-chip.active,
+  .challenge-active [data-pattern].active {
     border-color: var(--challenge-active); color: var(--challenge-active);
   }
 
@@ -681,6 +682,11 @@
     <div class="diff-chip" data-diff="medium">Medium</div>
     <div class="diff-chip" data-diff="hard">Hard</div>
     <div class="diff-chip" data-diff="expert">Expert</div>
+  </div>
+  <div class="diff-row hidden" id="pattern-row">
+    <div class="diff-chip active" data-pattern="tight" style="font-size:11px">Tight</div>
+    <div class="diff-chip" data-pattern="loose" style="font-size:11px">Loose</div>
+    <div class="diff-chip" data-pattern="flood" style="font-size:11px">Flood</div>
   </div>
 
   <div class="game-area">
@@ -1439,19 +1445,41 @@ function generate(difficulty, seed) {
 /* ─────────────────────────────────────────
    CHALLENGE MODE — Inventory Generation
 ───────────────────────────────────────── */
-function generateChallengeInventory(solution, size) {
-  // Exact pattern: inventory = count of each digit in solution
+const CHALLENGE_PATTERNS = ['tight', 'loose', 'flood'];
+let currentChallengePattern = 'tight';
+
+function generateChallengeInventory(solution, size, patternSeed) {
   const inv = {};
   for (let v = 1; v <= size; v++) inv[v] = 0;
   for (const v of solution) inv[v] = (inv[v] || 0) + 1;
+
+  if (currentChallengePattern === 'tight') return inv;
+
+  const rng = mulberry32(patternSeed || 12345);
+
+  if (currentChallengePattern === 'loose') {
+    // Add +1 or +2 extras to 2-3 random numbers
+    const candidates = Array.from({ length: size }, (_, i) => i + 1);
+    const numExtras = Math.min(size, 2 + Math.floor(rng() * 2));
+    for (let i = 0; i < numExtras; i++) {
+      const idx = Math.floor(rng() * candidates.length);
+      inv[candidates[idx]] += 1 + Math.floor(rng() * 2);
+    }
+  } else if (currentChallengePattern === 'flood') {
+    // Add +2 or +3 to every number
+    for (let v = 1; v <= size; v++) {
+      inv[v] += 2 + Math.floor(rng() * 2);
+    }
+  }
+
   return inv;
 }
 
 function generateChallengePuzzle(difficulty, seed) {
   const puzzle = generate(difficulty, seed);
   if (!puzzle) return null;
-  const inventory = generateChallengeInventory(puzzle.solution, puzzle.size);
-  return { ...puzzle, inventory, gameMode: 'challenge' };
+  const inventory = generateChallengeInventory(puzzle.solution, puzzle.size, seed);
+  return { ...puzzle, inventory, pattern: currentChallengePattern, gameMode: 'challenge' };
 }
 
 function canPlaceInventory(value) {
@@ -2413,9 +2441,11 @@ function switchGameMode(mode) {
   document.querySelectorAll('.mode-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.mode === mode);
   });
-  // Toggle amber theme on diff row
+  // Toggle amber theme on diff row + pattern row visibility
   const main = document.querySelector('main');
   if (main) main.classList.toggle('challenge-active', mode === 'challenge');
+  const patternRow = document.getElementById('pattern-row');
+  if (patternRow) patternRow.classList.toggle('hidden', mode !== 'challenge');
   // Start a new puzzle in the selected mode
   if (mode === 'challenge') {
     newChallengePuzzle(currentDiff);
@@ -2527,6 +2557,18 @@ document.querySelector('.diff-chip.daily').addEventListener('click', () => {
 // Mode tabs
 document.querySelectorAll('.mode-tab').forEach(tab => {
   tab.addEventListener('click', () => switchGameMode(tab.dataset.mode));
+});
+
+// Pattern chips (challenge mode)
+document.querySelectorAll('[data-pattern]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (chip.classList.contains('active')) return;
+    currentChallengePattern = chip.dataset.pattern;
+    document.querySelectorAll('[data-pattern]').forEach(c => {
+      c.classList.toggle('active', c.dataset.pattern === currentChallengePattern);
+    });
+    if (currentGameMode === 'challenge') newChallengePuzzle(currentDiff);
+  });
 });
 
 // Show current streak in header badge (hide if 0)

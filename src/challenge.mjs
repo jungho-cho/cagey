@@ -2,17 +2,20 @@
  * Cagey — Challenge Mode (ESM)
  *
  * Generates inventory-limited puzzles. Uses existing Latin square generator,
- * then derives inventory by counting solution digits and optionally removing
- * surplus to create uneven patterns.
+ * then derives inventory from solution digit counts.
  *
- * Patterns:
- *  - 'exact'   : inventory = exact count from solution (tightest)
- *  - 'pyramid' : smaller numbers get fewer, larger get more
- *  - 'inverse' : larger numbers get fewer, smaller get more
- *  - 'random'  : random surplus removal (1-2 per number)
+ * Patterns (surplus-based, original solution always valid):
+ *  - 'tight'  : inventory = exact count from solution (easiest, counts are hints)
+ *  - 'loose'  : +1-2 random extras on some numbers (harder, adds uncertainty)
+ *  - 'flood'  : +2-3 extras on all numbers (hardest, lots of uncertainty)
+ *
+ * Key insight: exact inventory LEAKS information (×1 means position is almost
+ * determined). Adding surplus makes the puzzle harder, not easier.
  */
 
 import { generate, mulberry32 } from './generator.mjs';
+
+export const CHALLENGE_PATTERNS = ['tight', 'loose', 'flood'];
 
 /**
  * Count occurrences of each value 1..size in the solution grid.
@@ -27,72 +30,39 @@ export function countSolutionDigits(solution, size) {
 /**
  * Generate inventory from a puzzle solution.
  *
+ * All patterns guarantee: inventory[v] >= solutionCount[v] for every v.
+ * This means the original solution is always valid. Surplus adds uncertainty.
+ *
  * @param {number[]} solution - flat row-major solution grid
  * @param {number} size - grid dimension (4, 5, 6, 8)
  * @param {function} rng - seeded PRNG
- * @param {'exact'|'pyramid'|'inverse'|'random'} pattern
+ * @param {'tight'|'loose'|'flood'} pattern
  * @returns {Object<number, number>} inventory map { 1: N, 2: M, ... }
  */
-export function generateInventory(solution, size, rng, pattern = 'exact') {
+export function generateInventory(solution, size, rng, pattern = 'tight') {
   const counts = countSolutionDigits(solution, size);
-
-  if (pattern === 'exact') {
-    return { ...counts };
-  }
-
   const inventory = { ...counts };
 
-  if (pattern === 'pyramid') {
-    // Smaller numbers get reduced more, larger numbers keep more
-    for (let v = 1; v <= size; v++) {
-      // Reduction amount: higher for small v, lower for large v
-      const maxReduce = Math.max(0, Math.floor((size - v) / 2));
-      const reduce = Math.min(maxReduce, inventory[v] - 1); // always keep at least 1
-      if (reduce > 0) {
-        const actual = Math.floor(rng() * (reduce + 1));
-        inventory[v] -= actual;
-      }
-    }
-  } else if (pattern === 'inverse') {
-    // Larger numbers get reduced more, smaller numbers keep more
-    for (let v = 1; v <= size; v++) {
-      const maxReduce = Math.max(0, Math.floor((v - 1) / 2));
-      const reduce = Math.min(maxReduce, inventory[v] - 1);
-      if (reduce > 0) {
-        const actual = Math.floor(rng() * (reduce + 1));
-        inventory[v] -= actual;
-      }
-    }
-  } else if (pattern === 'random') {
-    // Random reduction of 0-2 per number
-    for (let v = 1; v <= size; v++) {
-      const maxReduce = Math.min(2, inventory[v] - 1);
-      if (maxReduce > 0) {
-        inventory[v] -= Math.floor(rng() * (maxReduce + 1));
-      }
-    }
+  if (pattern === 'tight') {
+    // Exact counts. Easiest because inventory IS the solution's fingerprint.
+    return inventory;
   }
 
-  // Safety: every number must have at least as many as needed by solution
-  // (For 'exact', this is always true. For others, we only ADDED surplus above
-  //  the solution count, so we can safely remove some.)
-  // Actually, our patterns only REMOVE from the solution count, so we must ensure
-  // the inventory still allows the solution. Since we never go below 1, and the
-  // solution needs exactly counts[v] of each, we need inventory[v] >= counts[v].
-  // Wait — that defeats the purpose! The whole point is inventory < counts for some numbers.
-  //
-  // The trick: for non-exact patterns, the puzzle has MULTIPLE valid solutions
-  // (because Latin square has unique solution but the inventory constraint creates
-  // a different game). The player needs to find ANY valid fill that satisfies:
-  // 1. All cage arithmetic correct
-  // 2. Total usage of each number ≤ inventory
-  //
-  // So the inventory CAN be less than the original solution's counts.
-  // The original solution is just ONE valid answer, but with reduced inventory,
-  // the player might need a different arrangement.
-  //
-  // For v1, let's keep it simple: 'exact' only.
-  // Non-exact patterns are a future enhancement that requires solver modification.
+  if (pattern === 'loose') {
+    // Add +1 or +2 extras to 2-3 random numbers
+    const candidates = Array.from({ length: size }, (_, i) => i + 1);
+    const numExtras = Math.min(size, 2 + Math.floor(rng() * 2)); // 2-3 numbers get extras
+    for (let i = 0; i < numExtras; i++) {
+      const idx = Math.floor(rng() * candidates.length);
+      const v = candidates[idx];
+      inventory[v] += 1 + Math.floor(rng() * 2); // +1 or +2
+    }
+  } else if (pattern === 'flood') {
+    // Add +2 or +3 to every number
+    for (let v = 1; v <= size; v++) {
+      inventory[v] += 2 + Math.floor(rng() * 2); // +2 or +3
+    }
+  }
 
   return inventory;
 }
@@ -102,10 +72,10 @@ export function generateInventory(solution, size, rng, pattern = 'exact') {
  *
  * @param {'easy'|'medium'|'hard'|'expert'} difficulty
  * @param {number} [seed]
- * @param {'exact'|'pyramid'|'inverse'|'random'} [pattern='exact']
- * @returns {{ size, cages, solution, inventory } | null}
+ * @param {'tight'|'loose'|'flood'} [pattern='tight']
+ * @returns {{ size, cages, solution, inventory, pattern, gameMode } | null}
  */
-export function generateChallenge(difficulty, seed, pattern = 'exact') {
+export function generateChallenge(difficulty, seed, pattern = 'tight') {
   const puzzle = generate(difficulty, seed);
   if (!puzzle) return null;
 
@@ -115,20 +85,16 @@ export function generateChallenge(difficulty, seed, pattern = 'exact') {
   return {
     ...puzzle,
     inventory,
+    pattern,
     gameMode: 'challenge',
   };
 }
 
 /**
  * Check if placing a value would exceed inventory.
- *
- * @param {number} value - number to place (1..size)
- * @param {Object<number, number>} inventoryUsed - current usage counts
- * @param {Object<number, number>} inventory - total inventory
- * @returns {boolean} true if placement is allowed
  */
 export function canPlaceValue(value, inventoryUsed, inventory) {
-  if (value === 0) return true; // delete is always allowed
+  if (value === 0) return true;
   const used = inventoryUsed[value] || 0;
   const available = inventory[value] || 0;
   return used < available;
@@ -136,11 +102,6 @@ export function canPlaceValue(value, inventoryUsed, inventory) {
 
 /**
  * Get remaining count for each value.
- *
- * @param {Object<number, number>} inventoryUsed
- * @param {Object<number, number>} inventory
- * @param {number} size
- * @returns {Object<number, number>} remaining counts
  */
 export function getRemainingInventory(inventoryUsed, inventory, size) {
   const remaining = {};
